@@ -1,0 +1,179 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}MediLink - Gestion des utilisateurs{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-users-gear"></i> Gestion des utilisateurs</h2>
+    <p>Créer, modifier, activer/désactiver et gérer les rôles des utilisateurs.</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Total utilisateurs</h3>
+      <p class="stat-number">{{ stats.total }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Actifs</h3>
+      <p class="stat-number">{{ stats.active }}</p>
+    </div>
+    <div class="stat-card">
+      <h3>Désactivés</h3>
+      <p class="stat-number">{{ stats.disabled }}</p>
+    </div>
+  </div>
+
+  <form class="toolbar" method="get" action="{{ path('admin_users_index') }}">
+  <div class="searchbox">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input name="q" value="{{ filters.q }}" type="text" placeholder="Rechercher par nom, email, rôle..." />
+  </div>
+
+  <div class="filters">
+    <select name="role">
+      <option value="">Tous les rôles</option>
+      <option value="ROLE_ADMIN" {{ filters.role == 'ROLE_ADMIN' ? 'selected' }}>ADMIN</option>
+      <option value="ROLE_MEDECIN" {{ filters.role == 'ROLE_MEDECIN' ? 'selected' }}>MEDECIN</option>
+      <option value="ROLE_PATIENT" {{ filters.role == 'ROLE_PATIENT' ? 'selected' }}>PATIENT</option>
+      <option value="ROLE_SECRETAIRE" {{ filters.role == 'ROLE_SECRETAIRE' ? 'selected' }}>SECRETAIRE</option>
+    </select>
+
+    <select name="status">
+      <option value="">Tous les statuts</option>
+      <option value="ACTIVE" {{ filters.status == 'ACTIVE' ? 'selected' }}>Actif</option>
+      <option value="DISABLED" {{ filters.status == 'DISABLED' ? 'selected' }}>Désactivé</option>
+    </select>
+
+    <a class="btn-secondary" href="{{ path('admin_users_index') }}">
+      <i class="fa-solid fa-rotate-left"></i> Reset
+    </a>
+  </div>
+
+  <button class="btn-primary" id="btnAdd" type="button">
+  <i class="fa-solid fa-plus"></i> Ajouter un utilisateur
+</button>
+
+</form>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom complet</th>
+          <th>Email</th>
+          <th>Rôle</th>
+          <th>Statut</th>
+          <th style="width: 160px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr>
+            <td>{{ u.fullName }}</td>
+            <td>{{ u.email }}</td>
+            <td><strong>{{ u.roles[0]|default('ROLE_USER') }}</strong></td>
+            <td>
+              {% if u.status == 'ACTIVE' %}
+                <span class="badge badge-success">Actif</span>
+              {% else %}
+                <span class="badge badge-error">Désactivé</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="actions">
+                <a class="icon-btn" title="Modifier" href="{{ path('admin_users_edit', {id: u.id}) }}">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+
+                <form method="post" action="{{ path('admin_users_toggle', {id: u.id}) }}" style="display:inline">
+                  <input type="hidden" name="_token" value="{{ csrf_token('toggle_user_' ~ u.id) }}">
+                  <button class="icon-btn" title="Activer/Désactiver" type="submit">
+                    <i class="fa-solid fa-power-off"></i>
+                  </button>
+                </form>
+
+                <form method="post" action="{{ path('admin_users_delete', {id: u.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                  <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ u.id) }}">
+                  <button class="icon-btn" title="Supprimer" type="submit">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5">Aucun utilisateur trouvé.</td>
+          </tr>
+        {% endfor %}
+        <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+  <div id="modalContainer"></div>
+</div>
+
+      </tbody>
+    </table>
+  </div>
+</section>
+<script>
+  const overlay = document.getElementById('modalOverlay');
+  const container = document.getElementById('modalContainer');
+  const btnAdd = document.getElementById('btnAdd');
+
+  function openModal(html) {
+    container.innerHTML = html;
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden', 'false');
+
+    // close buttons
+    container.querySelectorAll('[data-close-modal]').forEach(btn => {
+      btn.addEventListener('click', closeModal);
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    }, { once: true });
+
+    // handle submit (AJAX)
+    const form = container.querySelector('#userModalForm');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+
+        const res = await fetch("{{ path('admin_users_new_modal') }}", {
+          method: "POST",
+          body: formData,
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+
+        // إذا نجح -> refresh
+        const data = await res.json().catch(() => null);
+        if (data && data.ok) {
+          window.location.reload();
+          return;
+        }
+
+        // إذا فشل validation -> يرجع HTML
+        const html = await res.text();
+        openModal(html);
+      });
+    }
+  }
+
+  function closeModal() {
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+    container.innerHTML = '';
+  }
+
+  btnAdd.addEventListener('click', async () => {
+    const res = await fetch("{{ path('admin_users_new_modal') }}", {
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    });
+    const html = await res.text();
+    openModal(html);
+  });
+</script>
+
+{% endblock %}

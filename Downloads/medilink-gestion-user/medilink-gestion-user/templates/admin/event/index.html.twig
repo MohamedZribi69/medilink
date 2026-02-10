@@ -1,0 +1,134 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}MediLink - Gestion des événements{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-calendar-days"></i> Gestion des événements</h2>
+    <p>Créer, modifier et consulter les participants des événements.</p>
+  </div>
+
+  <form class="toolbar" method="get" action="{{ path('admin_events_index') }}">
+    <div class="searchbox">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input name="q" value="{{ filters.q }}" type="text" placeholder="Rechercher par titre, lieu, type..." />
+    </div>
+    <div class="filters">
+      <a class="btn-secondary" href="{{ path('admin_events_index', { q: filters.q, ordre: 'asc' }) }}">
+        <i class="fa-solid fa-filter"></i> Filtrer (date croissant)
+      </a>
+      <a class="btn-secondary" href="{{ path('admin_events_index', { q: filters.q }) }}">
+        <i class="fa-solid fa-rotate-left"></i> Reset
+      </a>
+    </div>
+    <button class="btn-primary" id="btnAdd" type="button">
+      <i class="fa-solid fa-plus"></i> Ajouter un événement
+    </button>
+  </form>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Date</th>
+          <th>Lieu</th>
+          <th>Type</th>
+          <th style="width: 200px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in evenements %}
+          <tr>
+            <td><strong>{{ e.titre }}</strong></td>
+            <td>{{ e.dateEvenement|date('d/m/Y') }}</td>
+            <td>{{ e.lieu }}</td>
+            <td>{{ e.type }}</td>
+            <td>
+              <div class="actions">
+                <a class="icon-btn" title="Voir les participants" href="{{ path('admin_events_participants', { id: e.id }) }}">
+                  <i class="fa-solid fa-users"></i>
+                </a>
+                <a class="icon-btn" title="Modifier" href="{{ path('admin_events_edit', { id: e.id }) }}">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+                <form method="post" action="{{ path('admin_events_delete', { id: e.id }) }}" style="display:inline" onsubmit="return confirm('Supprimer cet événement ?');">
+                  <input type="hidden" name="_token" value="{{ csrf_token('delete_event_' ~ e.id) }}">
+                  <button class="icon-btn" title="Supprimer" type="submit">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5">Aucun événement trouvé.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+    <div id="modalContainer"></div>
+  </div>
+</section>
+
+<script>
+  const overlay = document.getElementById('modalOverlay');
+  const container = document.getElementById('modalContainer');
+  const btnAdd = document.getElementById('btnAdd');
+  const modalUrl = "{{ path('admin_events_new_modal') }}";
+
+  function openModal(html) {
+    container.innerHTML = html;
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden', 'false');
+    container.querySelectorAll('[data-close-modal]').forEach(btn => btn.addEventListener('click', closeModal));
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); }, { once: true });
+  }
+
+  function closeModal() {
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+    container.innerHTML = '';
+  }
+
+  // Délégation : gérer le submit du formulaire modal où qu'il soit dans container
+  container.addEventListener('submit', async function(e) {
+    if (e.target.id !== 'eventModalForm') return;
+    e.preventDefault();
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enregistrement...'; }
+    try {
+      const formData = new FormData(form);
+      const res = await fetch(modalUrl, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.indexOf('application/json') !== -1) {
+        const data = await res.json().catch(function() { return null; });
+        if (data && data.ok) { window.location.reload(); return; }
+      }
+      const html = await res.text();
+      openModal(html);
+    } catch (err) {
+      alert('Erreur réseau ou serveur : ' + (err.message || 'Veuillez réessayer.'));
+    } finally {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalText; }
+    }
+  });
+
+  btnAdd.addEventListener('click', async function() {
+    try {
+      const res = await fetch(modalUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      const html = await res.text();
+      openModal(html);
+    } catch (err) {
+      alert('Impossible de charger le formulaire : ' + (err.message || 'Veuillez réessayer.'));
+    }
+  });
+</script>
+{% endblock %}
