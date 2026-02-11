@@ -16,9 +16,12 @@ final class HomeController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
         if ($this->isGranted('ROLE_ADMIN')) {
-            return $this->redirectToRoute('admin_users_index');
+            return $this->redirectToRoute('admin_rendezvous_index');
         }
-        return $this->redirectToRoute('app_events_index');
+        if ($this->isGranted('ROLE_MEDECIN')) {
+            return $this->redirectToRoute('medecin_index');
+        }
+        return $this->redirectToRoute('patient_rendezvous_index');
     }
 
     #[Route('/home', name: 'app_home_legacy')]

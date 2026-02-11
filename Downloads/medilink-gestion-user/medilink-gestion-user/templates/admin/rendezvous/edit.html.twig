@@ -1,0 +1,43 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Modifier le rendez-vous{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-calendar-check"></i> Modifier le rendez-vous</h2>
+    <p>{{ rendezVous.disponibilite.date|date('d/m/Y') }} - {{ rendezVous.disponibilite.heureDebut|date('H:i') }} à {{ rendezVous.disponibilite.heureFin|date('H:i') }}</p>
+  </div>
+
+  <div class="table-container" style="max-width: 600px;">
+    {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+    <div style="padding: 20px;">
+      <div class="form-group">
+        <label for="{{ form.disponibilite.vars.id }}">Disponibilité</label>
+        {{ form_widget(form.disponibilite, { attr: { class: 'input' } }) }}
+        <p class="hint">La disponibilité ne peut pas être modifiée après création.</p>
+      </div>
+      <div class="form-group">
+        <label for="{{ form.patient.vars.id }}">Patient</label>
+        {{ form_widget(form.patient, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.patient) }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.statut.vars.id }}">Statut</label>
+        {{ form_widget(form.statut, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.statut) }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.motif.vars.id }}">Motif</label>
+        {{ form_widget(form.motif, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.motif) }}
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 20px;">
+        <a href="{{ path('admin_rendezvous_index') }}" class="btn-secondary">Annuler</a>
+        <button type="submit" class="btn-primary">Enregistrer</button>
+      </div>
+    </div>
+    {{ form_end(form) }}
+  </div>
+</section>
+{% endblock %}

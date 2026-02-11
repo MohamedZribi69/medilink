@@ -1,0 +1,50 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Modifier la disponibilité{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-clock"></i> Modifier la disponibilité</h2>
+    <p>{{ disponibilite.date|date('d/m/Y') }} - {{ disponibilite.heureDebut|date('H:i') }} à {{ disponibilite.heureFin|date('H:i') }}</p>
+  </div>
+
+  <div class="table-container" style="max-width: 600px;">
+    {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+    <div style="padding: 20px;">
+      {{ form_errors(form) }}
+      <div class="form-group">
+        <label for="{{ form.medecin.vars.id }}">Médecin</label>
+        {{ form_widget(form.medecin, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.medecin) }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.date.vars.id }}">Date</label>
+        {{ form_widget(form.date, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.date) }}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.heureDebut.vars.id }}">Heure de début</label>
+          {{ form_widget(form.heureDebut, { attr: { class: 'input' } }) }}
+          {{ form_errors(form.heureDebut) }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.heureFin.vars.id }}">Heure de fin</label>
+          {{ form_widget(form.heureFin, { attr: { class: 'input' } }) }}
+          {{ form_errors(form.heureFin) }}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="{{ form.status.vars.id }}">Statut</label>
+        {{ form_widget(form.status, { attr: { class: 'input' } }) }}
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 20px;">
+        <a href="{{ path('admin_disponibilites_index') }}" class="btn-secondary">Annuler</a>
+        <button type="submit" class="btn-primary">Enregistrer</button>
+      </div>
+    </div>
+    {{ form_end(form) }}
+  </div>
+</section>
+{% endblock %}

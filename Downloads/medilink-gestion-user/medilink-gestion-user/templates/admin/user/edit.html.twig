@@ -1,0 +1,58 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Modifier {{ user.fullName }} - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-user-pen"></i> Modifier l'utilisateur</h2>
+    <p>{{ user.fullName }} ({{ user.email }})</p>
+  </div>
+
+  {{ form_start(form) }}
+  <div class="table-container" style="max-width: 560px; padding: 24px;">
+    <div class="form-row">
+      <div class="form-group">
+        {{ form_label(form.fullName) }}
+        {{ form_widget(form.fullName, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.fullName) }}
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        {{ form_label(form.email) }}
+        {{ form_widget(form.email, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.email) }}
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        {{ form_label(form.role) }}
+        {{ form_widget(form.role, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.role) }}
+      </div>
+      <div class="form-group">
+        {{ form_label(form.status) }}
+        {{ form_widget(form.status, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.status) }}
+      </div>
+    </div>
+    <div class="form-group">
+      {{ form_label(form.plainPassword) }}
+      {{ form_widget(form.plainPassword, { attr: { class: 'input', placeholder: 'Laisser vide pour ne pas modifier' } }) }}
+      {{ form_errors(form.plainPassword) }}
+      <p class="hint">Laisser vide pour conserver le mot de passe actuel.</p>
+    </div>
+
+    <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+      <button type="submit" class="btn-primary">
+        <i class="fa-solid fa-floppy-disk"></i> Enregistrer
+      </button>
+      <a href="{{ path('admin_users_index') }}" class="btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Retour
+      </a>
+    </div>
+  </div>
+  {{ form_end(form) }}
+</section>
+{% endblock %}

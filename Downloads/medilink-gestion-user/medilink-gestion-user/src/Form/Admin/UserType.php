@@ -30,7 +30,7 @@ final class UserType extends AbstractType
             ])
             ->add('role', ChoiceType::class, [
                 'label' => 'Rôle',
-                'mapped' => false, // on convertit vers roles[] dans le controller
+                'mapped' => false,
                 'choices' => [
                     'ADMIN' => 'ROLE_ADMIN',
                     'MEDECIN' => 'ROLE_MEDECIN',
@@ -47,7 +47,6 @@ final class UserType extends AbstractType
             ])
         ;
 
-        // Mot de passe: obligatoire en CREATE, optionnel en EDIT
         $builder->add('plainPassword', PasswordType::class, [
             'label' => 'Mot de passe',
             'mapped' => false,

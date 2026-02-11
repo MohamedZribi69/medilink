@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}MediLink - Événements{% endblock %}</title>
+  <title>{% block title %}MediLink - Espace Médecin{% endblock %}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-  <style>{{ include('_styles_front.html.twig') }}{% block event_styles %}{% endblock %}</style>
+  <style>{{ include('_styles_front.html.twig') }}</style>
 </head>
 <body>
 <header class="header">
@@ -16,15 +16,12 @@
       <h1>Medi<span>Link</span></h1>
     </div>
     <nav class="nav">
-      <a href="{{ path('app_events_index') }}" class="{% if app.request.attributes.get('_route') starts with 'app_events' %}active{% endif %}">
-        <i class="fa-solid fa-calendar-days"></i> Événements
-      </a>
-      <a href="{{ path('patient_rendezvous_index') }}" class="{% if app.request.attributes.get('_route') starts with 'patient' %}active{% endif %}">
-        <i class="fa-solid fa-calendar-check"></i> Rendez-vous
+      <a href="{{ path('medecin_index') }}" class="{% if app.request.attributes.get('_route') starts with 'medecin' %}active{% endif %}">
+        <i class="fa-solid fa-clock"></i> Mes disponibilités
       </a>
       <div class="user-info">
-        <i class="fas fa-user-circle"></i>
-        <span>{{ app.user ? app.user.fullName : 'Participant' }}</span>
+        <i class="fas fa-user-md"></i>
+        <span>{{ app.user ? app.user.fullName : 'Médecin' }}</span>
       </div>
       <a href="{{ path('app_logout') }}" title="Déconnexion">
         <i class="fa-solid fa-right-from-bracket"></i>
@@ -38,7 +35,9 @@
   <div class="container">
     {% for label, messages in app.flashes %}
       {% for message in messages %}
-        <div class="card">{{ message }}</div>
+        <div class="flash flash-{{ label }}">
+          <strong>{% if label == 'success' %}✓{% elseif label == 'error' %}⚠{% else %}ℹ{% endif %}</strong> {{ message }}
+        </div>
       {% endfor %}
     {% endfor %}
     {% block body %}{% endblock %}
@@ -47,7 +46,7 @@
 
 <footer class="footer">
   <div class="container">
-    <p>MediLink &copy; 2026 - Plateforme de gestion médicale</p>
+    <p>MediLink &copy; 2026 - Espace médecin</p>
   </div>
 </footer>
 

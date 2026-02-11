@@ -50,8 +50,14 @@ public function onAuthenticationSuccess(Request $request, TokenInterface $token,
 
     // Redirect selon le rôle
     $user = $token->getUser();
-    if (method_exists($user, 'getRoles') && in_array('ROLE_ADMIN', $user->getRoles(), true)) {
-        return new RedirectResponse($this->urlGenerator->generate('admin_users_index'));
+    if (method_exists($user, 'getRoles')) {
+        $roles = $user->getRoles();
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('admin_rendezvous_index'));
+        }
+        if (in_array('ROLE_MEDECIN', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('medecin_index'));
+        }
     }
 
     // Front office (change cette route plus tard si tu as une homepage)

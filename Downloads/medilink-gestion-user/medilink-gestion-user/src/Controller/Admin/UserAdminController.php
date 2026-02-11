@@ -55,6 +55,37 @@ final class UserAdminController extends AbstractController
         ]);
     }
 
+    #[Route('/new-modal', name: 'admin_users_new_modal')]
+    public function newModal(
+        Request $request,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $hasher
+    ): Response {
+        $user = new User();
+        $user->setStatus('ACTIVE');
+        $user->setRoles(['ROLE_PATIENT']);
+
+        $form = $this->createForm(UserType::class, $user, ['is_edit' => false]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $role = (string) $form->get('role')->getData();
+            $user->setRoles([$role]);
+
+            $plain = (string) $form->get('plainPassword')->getData();
+            $user->setPassword($hasher->hashPassword($user, $plain));
+
+            $em->persist($user);
+            $em->flush();
+
+            return $this->json(['ok' => true]);
+        }
+
+        return $this->render('admin/user/_modal_form.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
     #[Route('/new', name: 'admin_users_new')]
     public function new(
         Request $request,
@@ -87,7 +118,7 @@ final class UserAdminController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'admin_users_edit')]
+    #[Route('/{id}/edit', name: 'admin_users_edit', requirements: ['id' => '\d+'])]
     public function edit(
         User $user,
         Request $request,
@@ -124,7 +155,7 @@ final class UserAdminController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/toggle', name: 'admin_users_toggle', methods: ['POST'])]
+    #[Route('/{id}/toggle', name: 'admin_users_toggle', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function toggle(User $user, EntityManagerInterface $em, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('toggle_user_'.$user->getId(), (string) $request->request->get('_token'))) {
@@ -137,7 +168,7 @@ final class UserAdminController extends AbstractController
         return $this->redirectToRoute('admin_users_index');
     }
 
-    #[Route('/{id}', name: 'admin_users_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'admin_users_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function delete(User $user, EntityManagerInterface $em, Request $request): Response
     {
         if (!$this->isCsrfTokenValid('delete_user_'.$user->getId(), (string) $request->request->get('_token'))) {
@@ -150,34 +181,4 @@ final class UserAdminController extends AbstractController
         $this->addFlash('success', 'Utilisateur supprimé.');
         return $this->redirectToRoute('admin_users_index');
     }
-    #[Route('/new-modal', name: 'admin_users_new_modal')]
-public function newModal(
-    Request $request,
-    EntityManagerInterface $em,
-    UserPasswordHasherInterface $hasher
-): Response {
-    $user = new User();
-    $user->setStatus('ACTIVE');
-    $user->setRoles(['ROLE_PATIENT']);
-
-    $form = $this->createForm(UserType::class, $user, ['is_edit' => false]);
-    $form->handleRequest($request);
-
-    if ($form->isSubmitted() && $form->isValid()) {
-        $role = (string) $form->get('role')->getData();
-        $user->setRoles([$role]);
-
-        $plain = (string) $form->get('plainPassword')->getData();
-        $user->setPassword($hasher->hashPassword($user, $plain));
-
-        $em->persist($user);
-        $em->flush();
-
-        return $this->json(['ok' => true]);
-    }
-
-    return $this->render('admin/user/_modal_form.html.twig', [
-        'form' => $form->createView(),
-    ]);
-}
 }

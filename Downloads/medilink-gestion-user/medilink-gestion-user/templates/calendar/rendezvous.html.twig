@@ -1,0 +1,67 @@
+{% extends 'event/base.html.twig' %}
+
+{% block title %}Ajouter au calendrier - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-calendar-plus"></i> Ajouter au calendrier</h2>
+    <p>RDV du {{ rendezVous.dateHeure|date('d/m/Y à H:i') }} - {{ rendezVous.disponibilite.medecin ? rendezVous.disponibilite.medecin.fullName : 'Médecin' }}</p>
+  </div>
+
+  <div class="calendar-actions" style="display: flex; flex-direction: column; gap: 16px; max-width: 420px;">
+    <a href="{{ googleUrl }}" target="_blank" rel="noopener" class="btn-calendar btn-google">
+      <i class="fa-brands fa-google"></i> Google Calendar
+    </a>
+    <a href="{{ outlookUrl }}" target="_blank" rel="noopener" class="btn-calendar btn-outlook">
+      <i class="fa-brands fa-microsoft"></i> Outlook / Microsoft 365
+    </a>
+    <a href="{{ path('calendar_rendezvous_ics', { id: rendezVous.id }) }}" class="btn-calendar btn-ics">
+      <i class="fa-solid fa-download"></i> Télécharger (.ics)
+    </a>
+  </div>
+
+  <p class="hint" style="margin-top: 24px; font-size: 0.9rem;">
+    Le fichier .ics est compatible avec Apple Calendar, Thunderbird et la plupart des applications de calendrier.
+  </p>
+
+  <div style="margin-top: 32px;">
+    {% if is_granted('ROLE_ADMIN') %}
+      <a href="{{ path('admin_rendezvous_index') }}" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Retour</a>
+    {% elseif is_granted('ROLE_MEDECIN') %}
+      <a href="{{ path('medecin_index') }}" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Retour</a>
+    {% else %}
+      <a href="{{ path('patient_rendezvous_index') }}" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Retour</a>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+.btn-calendar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+.btn-calendar:hover { opacity: 0.9; }
+.btn-google {
+  background: #4285f4;
+  color: #fff;
+  border: none;
+}
+.btn-outlook {
+  background: #0078d4;
+  color: #fff;
+  border: none;
+}
+.btn-ics {
+  background: var(--white);
+  color: var(--dark-gray);
+  border: 2px solid var(--medium-gray);
+}
+</style>
+{% endblock %}
