@@ -1,0 +1,190 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Modifier mon don - MediLink{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- En-tête -->
+            <div class="mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    <h1 class="mb-0">
+                        <i class="fas fa-edit text-warning me-2"></i> Modifier mon don
+                    </h1>
+                    <span class="badge bg-{{ don.couleurStatut }} ms-3">
+                        <i class="fas fa-clock me-1"></i> {{ don.statutLabel }}
+                    </span>
+                </div>
+                <p class="text-muted">
+                    Modifiez les informations de votre don #{{ don.id }}.
+                </p>
+            </div>
+            
+            <!-- Formulaire de modification -->
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i> Modification du don #{{ don.id }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    
+                    <!-- Catégorie -->
+                    <div class="mb-3">
+                        {{ form_label(form.categorie) }}
+                        {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+                        <div class="invalid-feedback">
+                            Veuillez sélectionner une catégorie.
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-3">
+                        {{ form_label(form.articleDescription) }}
+                        {{ form_widget(form.articleDescription, {'attr': {'class': 'form-control'}}) }}
+                        <div class="invalid-feedback">
+                            Veuillez décrire l'article.
+                        </div>
+                    </div>
+                    
+                    <!-- Quantité -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form_label(form.quantite) }}
+                            {{ form_widget(form.quantite, {'attr': {'class': 'form-control'}}) }}
+                            <div class="invalid-feedback">
+                                Veuillez saisir une quantité valide.
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(form.unite) }}
+                            {{ form_widget(form.unite, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                    </div>
+                    
+                    <!-- Détails -->
+                    <div class="mb-3">
+                        {{ form_label(form.detailsSupplementaires) }}
+                        {{ form_widget(form.detailsSupplementaires, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+                        <small class="text-muted">
+                            Ex: Date d'expiration, marque, conditions de stockage...
+                        </small>
+                    </div>
+                    
+                    <!-- État et Urgence -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form_label(form.etat) }}
+                            {{ form_widget(form.etat, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(form.niveauUrgence) }}
+                            {{ form_widget(form.niveauUrgence, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                    </div>
+                    
+                    <!-- Date expiration -->
+                    <div class="mb-4">
+                        {{ form_label(form.dateExpiration) }}
+                        {{ form_widget(form.dateExpiration, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.dateExpiration) }}
+                    </div>
+                    
+                    <!-- Informations -->
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Informations :</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Don #{{ don.id }}</li>
+                            <li>Soumis le : {{ don.dateSoumission|date('d/m/Y à H:i') }}</li>
+                            <li>Statut : <span class="badge bg-{{ don.couleurStatut }}">{{ don.statutLabel }}</span></li>
+                            <li>Après modification, le délai de validation recommence</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ path('front_don_mes_dons') }}" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-times me-1"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save me-1"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4 mt-5 mt-lg-0">
+            <!-- Actions rapides -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <form action="{{ path('front_don_cancel', {'id': don.id}) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ don.id) }}">
+                            <button type="submit" class="btn btn-outline-danger w-100" 
+                                    onclick="return confirm('Êtes-vous sûr de vouloir annuler ce don ?')">
+                                <i class="fas fa-ban me-1"></i> Annuler ce don
+                            </button>
+                        </form>
+                        <form action="{{ path('front_don_delete', {'id': don.id}) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ don.id) }}">
+                            <button type="submit" class="btn btn-danger w-100" 
+                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer définitivement ce don ? Cette action est irréversible.')">
+                                <i class="fas fa-trash me-1"></i> Supprimer définitivement
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Retour -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-arrow-left me-2"></i> Retour
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ path('front_don_mes_dons') }}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-arrow-left me-1"></i> Retour à mes dons
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Conseils -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i> Conseils
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Vérifiez vos modifications</strong>
+                            <p class="text-muted small mb-0">Les changements sont immédiats.</p>
+                        </li>
+                        <li>
+                            <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                            <strong>Attention</strong>
+                            <p class="text-muted small mb-0">Les dons validés ne peuvent plus être modifiés.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

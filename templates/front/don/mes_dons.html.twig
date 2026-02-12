@@ -1,0 +1,104 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Mes dons - MediLink{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <!-- En-tête -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-history text-primary me-2"></i> Mes dons soumis
+        </h1>
+        <a href="{{ path('front_don_nouveau') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i> Nouveau don
+        </a>
+    </div>
+    
+    <!-- Filtres et tri (comme sur Dons disponibles) -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row align-items-center g-2">
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="q" value="{{ currentFilters.q|default('') }}" placeholder="Rechercher (description, détails)...">
+                        <button class="btn btn-outline-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="categorie" class="form-select" onchange="this.form.submit()">
+                        <option value="">Toutes les catégories</option>
+                        {% for categorie in categories %}
+                            <option value="{{ categorie.id }}" {{ (currentFilters.categorie|default(null)) == categorie.id ? 'selected' : '' }}>
+                                {{ categorie.nom }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="urgence" class="form-select" onchange="this.form.submit()">
+                        <option value="">Urgence (toutes)</option>
+                        <option value="Faible" {{ (currentFilters.urgence|default('')) == 'Faible' ? 'selected' : '' }}>Faible</option>
+                        <option value="Moyen" {{ (currentFilters.urgence|default('')) == 'Moyen' ? 'selected' : '' }}>Moyen</option>
+                        <option value="Élevé" {{ (currentFilters.urgence|default('')) == 'Élevé' ? 'selected' : '' }}>Élevé</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex">
+                        <select name="sort" class="form-select me-2" onchange="this.form.submit()">
+                            <option value="date" {{ (currentFilters.sort|default('date')) == 'date' ? 'selected' : '' }}>Tri par date</option>
+                            <option value="quantite" {{ (currentFilters.sort|default('date')) == 'quantite' ? 'selected' : '' }}>Tri par quantité</option>
+                            <option value="categorie" {{ (currentFilters.sort|default('date')) == 'categorie' ? 'selected' : '' }}>Tri par catégorie</option>
+                            <option value="urgence" {{ (currentFilters.sort|default('date')) == 'urgence' ? 'selected' : '' }}>Tri par urgence</option>
+                        </select>
+                        <select name="direction" class="form-select" onchange="this.form.submit()">
+                            <option value="DESC" {{ (currentFilters.direction|default('DESC')) == 'DESC' ? 'selected' : '' }}>Desc</option>
+                            <option value="ASC" {{ (currentFilters.direction|default('DESC')) == 'ASC' ? 'selected' : '' }}>Asc</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Zone rafraîchie automatiquement (API) -->
+    <div id="mes-dons-refresh">
+        {% include 'front/don/_mes_dons_content.html.twig' %}
+    </div>
+</div>
+
+{% block page_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var refreshInterval = 30000; // 30 secondes
+    var refreshUrl = '{{ path('front_don_mes_dons_refresh') }}';
+
+    function getQueryString() {
+        return window.location.search || '';
+    }
+
+    function doRefresh() {
+        var url = refreshUrl + getQueryString();
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r) { return r.text(); })
+            .then(function(html) {
+                var el = document.getElementById('mes-dons-refresh');
+                if (el) el.innerHTML = html;
+            })
+            .catch(function() {});
+    }
+
+    setInterval(doRefresh, refreshInterval);
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') doRefresh();
+    });
+
+    document.querySelector('form[method="get"]') && document.querySelector('form[method="get"]').addEventListener('submit', function() {
+        setTimeout(doRefresh, 500);
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

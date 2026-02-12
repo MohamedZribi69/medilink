@@ -1,0 +1,272 @@
+{% extends 'front/base.html.twig' %}
+
+{% block title %}Soumettre un don - MediLink{% endblock %}
+
+{% block styles %}
+<style>
+    .unit-indicator {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--dark-gray);
+        font-size: 0.9rem;
+        pointer-events: none;
+    }
+    .form-group {
+        position: relative;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- En-tête -->
+            <div class="mb-4">
+                <h1 class="mb-3">
+                    <i class="fas fa-plus-circle text-primary me-2"></i> Soumettre un don
+                </h1>
+                <p class="text-muted">
+                    Remplissez ce formulaire pour soumettre votre don. 
+                    Notre équipe l'examinera rapidement.
+                </p>
+            </div>
+            
+            <!-- Formulaire -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i> Formulaire de don
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    
+                    <!-- Catégorie et Quantité -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form_label(form.categorie) }}
+                                {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+                                <div class="invalid-feedback">
+                                    Veuillez sélectionner une catégorie.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form_label(form.quantite) }}
+                                {{ form_widget(form.quantite, {'attr': {'class': 'form-control'}}) }}
+                                <span class="unit-indicator" id="unitIndicator">unités</span>
+                                <div class="invalid-feedback">
+                                    Veuillez saisir une quantité valide.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-4">
+                        {{ form_label(form.articleDescription) }}
+                        {{ form_widget(form.articleDescription, {'attr': {'class': 'form-control'}}) }}
+                        <div class="invalid-feedback">
+                            Veuillez décrire l'article.
+                        </div>
+                    </div>
+                    
+                    <!-- Détails -->
+                    <div class="mb-4">
+                        {{ form_label(form.detailsSupplementaires) }}
+                        {{ form_widget(form.detailsSupplementaires, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+                        <small class="text-muted">
+                            Ex: Date d'expiration, marque, conditions de stockage...
+                        </small>
+                    </div>
+                    
+                    <!-- État et Urgence -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form_label(form.etat) }}
+                            {{ form_widget(form.etat, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(form.niveauUrgence) }}
+                            {{ form_widget(form.niveauUrgence, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                    </div>
+                    
+                    <!-- Unité et Date expiration -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            {{ form_label(form.unite) }}
+                            {{ form_widget(form.unite, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(form.dateExpiration) }}
+                            {{ form_widget(form.dateExpiration, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.dateExpiration) }}
+                        </div>
+                    </div>
+                    
+                    <!-- Information importante -->
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Information importante :</strong> 
+                        Votre don sera examiné par notre équipe avant d'apparaître sur le site. 
+                        Vous pouvez suivre son statut dans la section "Mes dons".
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="reset" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-eraser me-1"></i> Effacer
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i> Soumettre le don
+                        </button>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4 mt-5 mt-lg-0">
+            <!-- Catégories disponibles -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tags me-2"></i> Catégories disponibles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for categorie in categories %}
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                         style="width: 36px; height: 36px; background-color: {{ categorie.couleur|default('#3498db') }}20;">
+                                        <i class="fas {{ categorie.icone|default('fa-box') }}" 
+                                           style="color: {{ categorie.couleur|default('#3498db') }};"></i>
+                                    </div>
+                                    <div>
+                                        <strong>{{ categorie.nom }}</strong>
+                                        {% if categorie.description %}
+                                            <div class="text-muted small">{{ categorie.description }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conseils -->
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i> Conseils importants
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Vérifiez les dates d'expiration</strong>
+                            <p class="text-muted small mb-0">Les médicaments expirés ne peuvent être acceptés.</p>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Décrivez précisément</strong>
+                            <p class="text-muted small mb-0">Nom, dosage, quantité exacte.</p>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>État réel</strong>
+                            <p class="text-muted small mb-0">Indiquez l'état réel du matériel.</p>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Emballage sécurisé</strong>
+                            <p class="text-muted small mb-0">Assurez un emballage approprié.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Suivi -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i> Suivi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        <i class="fas fa-clock text-warning me-2"></i>
+                        <strong>Temps de traitement :</strong>
+                        <span class="text-muted">24-48 heures</span>
+                    </p>
+                    <a href="{{ path('front_don_mes_dons') }}" class="btn btn-outline-info w-100">
+                        <i class="fas fa-list me-1"></i> Voir mes dons
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block page_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mise à jour de l'unité
+    const categorySelect = document.querySelector('#{{ form.categorie.vars.id }}');
+    const uniteSelect = document.querySelector('#{{ form.unite.vars.id }}');
+    const uniteIndicator = document.getElementById('unitIndicator');
+    
+    function updateUnit() {
+        if (uniteSelect && uniteIndicator) {
+            const selectedOption = uniteSelect.options[uniteSelect.selectedIndex];
+            if (selectedOption) {
+                uniteIndicator.textContent = selectedOption.text;
+            }
+        }
+    }
+    
+    // Mettre à jour quand l'unité change
+    if (uniteSelect) {
+        uniteSelect.addEventListener('change', updateUnit);
+        updateUnit(); // Initialiser
+    }
+    
+    // Validation du formulaire
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+    
+    // Confirmation avant soumission
+    form.addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Envoi en cours...';
+        submitBtn.disabled = true;
+        
+        setTimeout(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 3000);
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}
