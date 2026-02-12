@@ -1,101 +1,92 @@
 {# templates/admin/don/edit.html.twig #}
 {% extends 'admin/base.html.twig' %}
 
-{% block title %}Modifier le don #{{ don.id }} - Admin{% endblock %}
+{% block title %}Modifier le don #{{ don.id }} - MediLink{% endblock %}
+{% block page_title %}Dons{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">
-            <i class="fas fa-edit me-2"></i> Modifier le don #{{ don.id }}
+<div class="container-fluid page-don-edit">
+    <div class="don-edit-header">
+        <h1 class="don-edit-title">
+            <i class="fas fa-edit"></i> Modifier le don #{{ don.id }}
         </h1>
-        <div class="btn-group">
-            <a href="{{ path('admin_don_index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-1"></i> Annuler
-            </a>
-        </div>
+        <a href="{{ path('admin_don_index') }}" class="btn-admin-secondary">
+            <i class="fas fa-arrow-left"></i> Annuler
+        </a>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-edit me-2"></i> Formulaire de modification
+    <div class="don-edit-layout">
+        <div class="don-edit-form-col">
+            <div class="card don-edit-card">
+                <div class="card-header don-edit-card-header">
+                    <h6 class="don-edit-card-title">
+                        <i class="fas fa-edit"></i> Formulaire de modification
                     </h6>
                 </div>
                 <div class="card-body">
-                    {{ form_start(form) }}
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            {{ form_row(form.categorie, {
-                                'attr': {'class': 'form-control'},
-                                'label': 'Catégorie'
-                            }) }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form_row(form.quantite, {
-                                'attr': {'class': 'form-control', 'min': 1},
-                                'label': 'Quantité'
-                            }) }}
-                        </div>
-                    </div>
+                    {{ form_start(form, {'attr': {'class': 'don-edit-form'}}) }}
+                    {{ form_errors(form) }}
 
-                    <div class="mb-3">
-                        {{ form_row(form.articleDescription, {
-                            'attr': {'class': 'form-control'},
-                            'label': 'Description de l\'article'
-                        }) }}
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            {{ form_row(form.unite, {
-                                'attr': {'class': 'form-control'},
-                                'label': 'Unité de mesure'
-                            }) }}
+                    <div class="don-form-row">
+                        <div class="don-form-group">
+                            {{ form_label(form.categorie) }}
+                            {{ form_widget(form.categorie, {'attr': {'class': 'don-form-control'}}) }}
+                            {{ form_errors(form.categorie) }}
                         </div>
-                        <div class="col-md-6">
-                            {{ form_row(form.etat, {
-                                'attr': {'class': 'form-control'},
-                                'label': 'État du don'
-                            }) }}
+                        <div class="don-form-group">
+                            {{ form_label(form.quantite) }}
+                            {{ form_widget(form.quantite, {'attr': {'class': 'don-form-control', 'min': 1}}) }}
+                            {{ form_errors(form.quantite) }}
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            {{ form_row(form.niveauUrgence, {
-                                'attr': {'class': 'form-control'},
-                                'label': 'Niveau d\'urgence'
-                            }) }}
+                    <div class="don-form-group">
+                        {{ form_label(form.articleDescription) }}
+                        {{ form_widget(form.articleDescription, {'attr': {'class': 'don-form-control'}}) }}
+                        {{ form_errors(form.articleDescription) }}
+                    </div>
+
+                    <div class="don-form-row">
+                        <div class="don-form-group">
+                            {{ form_label(form.unite) }}
+                            {{ form_widget(form.unite, {'attr': {'class': 'don-form-control'}}) }}
+                            {{ form_errors(form.unite) }}
                         </div>
-                        <div class="col-md-6">
-                            {{ form_row(form.statut, {
-                                'attr': {'class': 'form-control'},
-                                'label': 'Statut'
-                            }) }}
+                        <div class="don-form-group">
+                            {{ form_label(form.etat) }}
+                            {{ form_widget(form.etat, {'attr': {'class': 'don-form-control'}}) }}
+                            {{ form_errors(form.etat) }}
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        {{ form_row(form.detailsSupplementaires, {
-                            'attr': {'class': 'form-control', 'rows': 3},
-                            'label': 'Détails supplémentaires'
-                        }) }}
+                    <div class="don-form-row">
+                        <div class="don-form-group">
+                            {{ form_label(form.niveauUrgence) }}
+                            {{ form_widget(form.niveauUrgence, {'attr': {'class': 'don-form-control'}}) }}
+                            {{ form_errors(form.niveauUrgence) }}
+                        </div>
+                        <div class="don-form-group">
+                            {{ form_label(form.statut) }}
+                            {{ form_widget(form.statut, {'attr': {'class': 'don-form-control'}}) }}
+                            {{ form_errors(form.statut) }}
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        {{ form_row(form.dateExpiration, {
-                            'attr': {'class': 'form-control'},
-                            'label': 'Date d\'expiration'
-                        }) }}
+                    <div class="don-form-group">
+                        {{ form_label(form.detailsSupplementaires) }}
+                        {{ form_widget(form.detailsSupplementaires, {'attr': {'class': 'don-form-control don-form-control-textarea', 'rows': 3}}) }}
+                        {{ form_errors(form.detailsSupplementaires) }}
                     </div>
 
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i> Enregistrer les modifications
+                    <div class="don-form-group">
+                        {{ form_label(form.dateExpiration) }}
+                        {{ form_widget(form.dateExpiration, {'attr': {'class': 'don-form-control'}}) }}
+                        {{ form_errors(form.dateExpiration) }}
+                    </div>
+
+                    <div class="don-form-actions">
+                        <button type="submit" class="btn-admin-primary">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
                         </button>
                     </div>
 
@@ -104,29 +95,26 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <!-- Informations -->
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-info">
-                        <i class="fas fa-info-circle me-2"></i> Informations
+        <div class="don-edit-sidebar">
+            <div class="card don-edit-info-card">
+                <div class="card-header don-edit-info-header">
+                    <h6 class="don-edit-card-title">
+                        <i class="fas fa-info-circle"></i> Informations
                     </h6>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
+                    <div class="don-info-item">
                         <strong>ID :</strong> #{{ don.id }}
                     </div>
-                    <div class="mb-3">
+                    <div class="don-info-item">
                         <strong>Soumis le :</strong> {{ don.dateSoumission|date('d/m/Y H:i') }}
                     </div>
-                    <div class="mb-3">
+                    <div class="don-info-item">
                         <strong>Statut actuel :</strong>
-                        <span class="badge bg-{{ don.couleurStatut }}">
-                            {{ don.statutLabel }}
-                        </span>
+                        <span class="badge bg-{{ don.couleurStatut }}">{{ don.statutLabel }}</span>
                     </div>
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div class="don-edit-alert">
+                        <i class="fas fa-exclamation-triangle"></i>
                         <strong>Attention :</strong> La modification change immédiatement le don.
                     </div>
                 </div>

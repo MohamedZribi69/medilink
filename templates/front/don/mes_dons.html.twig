@@ -1,66 +1,54 @@
-{% extends 'front/base.html.twig' %}
+{% extends app.user ? 'event/base.html.twig' : 'front/base.html.twig' %}
 
 {% block title %}Mes dons - MediLink{% endblock %}
+{% block event_styles %}{{ parent() }}<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">{{ include('_dons_event_styles.html.twig') }}{% endblock %}
 
 {% block body %}
-<div class="container py-5">
+<div class="container py-5 page-dons">
     <!-- En-tête -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0">
-            <i class="fas fa-history text-primary me-2"></i> Mes dons soumis
-        </h1>
-        <a href="{{ path('front_don_nouveau') }}" class="btn btn-primary">
-            <i class="fas fa-plus-circle me-2"></i> Nouveau don
-        </a>
-    </div>
-    
-    <!-- Filtres et tri (comme sur Dons disponibles) -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row align-items-center g-2">
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="q" value="{{ currentFilters.q|default('') }}" placeholder="Rechercher (description, détails)...">
-                        <button class="btn btn-outline-primary" type="submit">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <select name="categorie" class="form-select" onchange="this.form.submit()">
-                        <option value="">Toutes les catégories</option>
-                        {% for categorie in categories %}
-                            <option value="{{ categorie.id }}" {{ (currentFilters.categorie|default(null)) == categorie.id ? 'selected' : '' }}>
-                                {{ categorie.nom }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="urgence" class="form-select" onchange="this.form.submit()">
-                        <option value="">Urgence (toutes)</option>
-                        <option value="Faible" {{ (currentFilters.urgence|default('')) == 'Faible' ? 'selected' : '' }}>Faible</option>
-                        <option value="Moyen" {{ (currentFilters.urgence|default('')) == 'Moyen' ? 'selected' : '' }}>Moyen</option>
-                        <option value="Élevé" {{ (currentFilters.urgence|default('')) == 'Élevé' ? 'selected' : '' }}>Élevé</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <div class="d-flex">
-                        <select name="sort" class="form-select me-2" onchange="this.form.submit()">
-                            <option value="date" {{ (currentFilters.sort|default('date')) == 'date' ? 'selected' : '' }}>Tri par date</option>
-                            <option value="quantite" {{ (currentFilters.sort|default('date')) == 'quantite' ? 'selected' : '' }}>Tri par quantité</option>
-                            <option value="categorie" {{ (currentFilters.sort|default('date')) == 'categorie' ? 'selected' : '' }}>Tri par catégorie</option>
-                            <option value="urgence" {{ (currentFilters.sort|default('date')) == 'urgence' ? 'selected' : '' }}>Tri par urgence</option>
-                        </select>
-                        <select name="direction" class="form-select" onchange="this.form.submit()">
-                            <option value="DESC" {{ (currentFilters.direction|default('DESC')) == 'DESC' ? 'selected' : '' }}>Desc</option>
-                            <option value="ASC" {{ (currentFilters.direction|default('DESC')) == 'ASC' ? 'selected' : '' }}>Asc</option>
-                        </select>
-                    </div>
-                </div>
-            </form>
+    <div class="section-header" style="margin-bottom: 24px;">
+        <h2 style="font-size: 1.75rem; color: var(--primary-color); margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-history"></i> Mes dons soumis
+        </h2>
+        <div class="actions" style="margin-top: 12px;">
+            <a href="{{ path('front_don_nouveau') }}" class="btn-primary">
+                <i class="fas fa-plus-circle"></i> Nouveau don
+            </a>
         </div>
     </div>
+    
+    <!-- Filtres et tri (style toolbar comme Dons disponibles / Événements) -->
+    <form method="get" class="dons-toolbar">
+        <div class="searchbox">
+            <i class="fas fa-search"></i>
+            <input type="text" name="q" value="{{ currentFilters.q|default('') }}" placeholder="Rechercher (description, détails)...">
+        </div>
+        <div class="filters">
+            <select name="categorie" onchange="this.form.submit()">
+                <option value="">Toutes les catégories</option>
+                {% for categorie in categories %}
+                    <option value="{{ categorie.id }}" {{ (currentFilters.categorie|default(null)) == categorie.id ? 'selected' : '' }}>{{ categorie.nom }}</option>
+                {% endfor %}
+            </select>
+            <select name="urgence" onchange="this.form.submit()">
+                <option value="">Urgence (toutes)</option>
+                <option value="Faible" {{ (currentFilters.urgence|default('')) == 'Faible' ? 'selected' : '' }}>Faible</option>
+                <option value="Moyen" {{ (currentFilters.urgence|default('')) == 'Moyen' ? 'selected' : '' }}>Moyen</option>
+                <option value="Élevé" {{ (currentFilters.urgence|default('')) == 'Élevé' ? 'selected' : '' }}>Élevé</option>
+            </select>
+            <select name="sort" onchange="this.form.submit()">
+                <option value="date" {{ (currentFilters.sort|default('date')) == 'date' ? 'selected' : '' }}>Tri par date</option>
+                <option value="quantite" {{ (currentFilters.sort|default('date')) == 'quantite' ? 'selected' : '' }}>Tri par quantité</option>
+                <option value="categorie" {{ (currentFilters.sort|default('date')) == 'categorie' ? 'selected' : '' }}>Tri par catégorie</option>
+                <option value="urgence" {{ (currentFilters.sort|default('date')) == 'urgence' ? 'selected' : '' }}>Tri par urgence</option>
+            </select>
+            <select name="direction" onchange="this.form.submit()">
+                <option value="DESC" {{ (currentFilters.direction|default('DESC')) == 'DESC' ? 'selected' : '' }}>Desc</option>
+                <option value="ASC" {{ (currentFilters.direction|default('DESC')) == 'ASC' ? 'selected' : '' }}>Asc</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-submit"><i class="fas fa-filter"></i> Filtrer</button>
+    </form>
 
     <!-- Zone rafraîchie automatiquement (API) -->
     <div id="mes-dons-refresh">

@@ -1,0 +1,56 @@
+<div class="modal">
+  <div class="modal-header">
+    <h3 id="modalTitle"><i class="fa-solid fa-calendar-plus"></i> Ajouter un événement</h3>
+    <button class="icon-btn" type="button" data-close-modal aria-label="Fermer">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  {{ form_start(form, { attr: { id: 'eventModalForm', novalidate: 'novalidate', enctype: 'multipart/form-data' } }) }}
+  <div class="modal-body">
+    <div class="form-group">
+      <label for="{{ form.titre.vars.id }}"><i class="fa-solid fa-heading"></i> Titre</label>
+      {{ form_widget(form.titre, { attr: { class: 'input', placeholder: 'Ex: Journée santé' } }) }}
+      {{ form_errors(form.titre) }}
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.description.vars.id }}"><i class="fa-solid fa-align-left"></i> Description</label>
+      {{ form_widget(form.description, { attr: { class: 'input' } }) }}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="{{ form.dateEvenement.vars.id }}"><i class="fa-solid fa-calendar"></i> Date</label>
+        {{ form_widget(form.dateEvenement, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.dateEvenement) }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.type.vars.id }}"><i class="fa-solid fa-tag"></i> Type</label>
+        {{ form_widget(form.type, { attr: { class: 'input', placeholder: 'Ex: Conférence' } }) }}
+        {{ form_errors(form.type) }}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.lieu.vars.id }}"><i class="fa-solid fa-location-dot"></i> Lieu</label>
+      {{ form_widget(form.lieu, { attr: { class: 'input', placeholder: 'Ex: Salle A' } }) }}
+      {{ form_errors(form.lieu) }}
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.photoFile.vars.id }}"><i class="fa-solid fa-image"></i> Photo de l'événement</label>
+      {{ form_widget(form.photoFile, { attr: { class: 'input' } }) }}
+      {{ form_errors(form.photoFile) }}
+      <p class="hint">JPEG, PNG, GIF ou WebP. Max 5 Mo. Optionnel.</p>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <div class="modal-footer-buttons">
+      <button type="button" class="btn-secondary" data-close-modal><i class="fa-solid fa-ban"></i> Annuler</button>
+      <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
+    </div>
+  </div>
+  {{ form_end(form) }}
+</div>

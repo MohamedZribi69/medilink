@@ -121,7 +121,7 @@ class DonsRepository extends ServiceEntityRepository
 
     /**
      * Recherche pour le front (liste des dons disponibles)
-     * - toujours limité aux dons validés
+     * - uniquement les dons validés par l'équipe
      *
      * @return Dons[]
      */

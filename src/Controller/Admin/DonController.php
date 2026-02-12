@@ -7,8 +7,10 @@ use App\Form\DonAdminType;
 use App\Repository\DonsRepository;
 use App\Repository\CategoriesDonsRepository;
 use App\Service\DonScoringService;
+use App\Service\DonTextCheckService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -91,6 +93,52 @@ class DonController extends AbstractController
                 'direction' => $direction,
             ],
         ]);
+    }
+
+    #[Route('/{id}/text-suggestions', name: 'admin_don_text_suggestions', methods: ['GET'])]
+    public function textSuggestions(Dons $don, DonTextCheckService $textCheckService): JsonResponse
+    {
+        $description = $don->getArticleDescription() ?? '';
+        $details = $don->getDetailsSupplementaires() ?? '';
+
+        $resultDesc = $textCheckService->getSuggestions($description);
+        $resultDetails = $details !== '' ? $textCheckService->getSuggestions($details) : ['hasIssues' => false, 'suggestions' => [], 'correctedText' => ''];
+
+        return new JsonResponse([
+            'articleDescription' => $description,
+            'detailsSupplementaires' => $details,
+            'suggestions' => [
+                'articleDescription' => $resultDesc['suggestions'],
+                'detailsSupplementaires' => $resultDetails['suggestions'],
+            ],
+            'correctedArticleDescription' => $resultDesc['correctedText'],
+            'correctedDetailsSupplementaires' => $resultDetails['correctedText'],
+            'hasIssues' => $resultDesc['hasIssues'] || $resultDetails['hasIssues'],
+        ]);
+    }
+
+    #[Route('/{id}/apply-correction', name: 'admin_don_apply_correction', methods: ['POST'])]
+    public function applyCorrection(Request $request, Dons $don, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('apply_correction' . $don->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de sécurité invalide.');
+            return $this->redirectToRoute('admin_don_show', ['id' => $don->getId()]);
+        }
+
+        $articleDescription = $request->request->get('article_description');
+        $detailsSupplementaires = $request->request->get('details_supplementaires');
+
+        if ($articleDescription !== null) {
+            $don->setArticleDescription(mb_substr(trim((string) $articleDescription), 0, 255));
+        }
+        if ($detailsSupplementaires !== null) {
+            $don->setDetailsSupplementaires(trim((string) $detailsSupplementaires) ?: null);
+        }
+
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Les corrections ont été appliquées au don.');
+        return $this->redirectToRoute('admin_don_show', ['id' => $don->getId()]);
     }
 
     #[Route('/{id}', name: 'admin_don_show', methods: ['GET'])]

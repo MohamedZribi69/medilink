@@ -1,0 +1,95 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Ajouter un utilisateur - MediLink{% endblock %}
+{% block page_title %}Utilisateurs{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <p class="mb-0 text-secondary">Créer un nouvel utilisateur.</p>
+  </div>
+
+  {# Modal always visible (page new) —  #}
+  <div class="modal-overlay show" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle"><i class="fa-solid fa-user-plus"></i> Ajouter un utilisateur</h3>
+
+        <a class="icon-btn" href="{{ path('admin_users_index') }}" aria-label="Fermer">
+          <i class="fa-solid fa-xmark"></i>
+        </a>
+      </div>
+
+      {{ form_start(form) }}
+      <div class="modal-body">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.fullName.vars.id }}">
+              <i class="fa-solid fa-id-card"></i> Nom complet
+            </label>
+            {{ form_widget(form.fullName, {
+              attr: { class: 'input', placeholder: 'Ex: Mohamed Zribi' }
+            }) }}
+            {{ form_errors(form.fullName) }}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.email.vars.id }}">
+              <i class="fa-solid fa-envelope"></i> Email
+            </label>
+            {{ form_widget(form.email, {
+              attr: { class: 'input', placeholder: 'ex: user@medilink.tn' }
+            }) }}
+            {{ form_errors(form.email) }}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.role.vars.id }}">
+              <i class="fa-solid fa-user-shield"></i> Rôle
+            </label>
+            {{ form_widget(form.role, { attr: { class: 'input' } }) }}
+            {{ form_errors(form.role) }}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.status.vars.id }}">
+              <i class="fa-solid fa-toggle-on"></i> Statut
+            </label>
+            {{ form_widget(form.status, { attr: { class: 'input' } }) }}
+            {{ form_errors(form.status) }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.plainPassword.vars.id }}">
+            <i class="fa-solid fa-key"></i> Mot de passe
+          </label>
+          {{ form_widget(form.plainPassword, {
+            attr: { class: 'input', placeholder: 'Min 6 caractères' }
+          }) }}
+          {{ form_errors(form.plainPassword) }}
+          <p class="hint">En mode “Modifier”, laisse vide pour ne pas changer le mot de passe.</p>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <a href="{{ path('admin_users_index') }}" class="btn-secondary" id="btnCancel">
+          <i class="fa-solid fa-ban"></i> Annuler
+        </a>
+
+        <button type="submit" class="btn-primary" id="btnSave">
+          <i class="fa-solid fa-floppy-disk"></i> Enregistrer
+        </button>
+      </div>
+      {{ form_end(form) }}
+
+    </div>
+  </div>
+
+</section>
+
+{% endblock %}

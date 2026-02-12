@@ -4,158 +4,31 @@
 
 {% block body %}
 <div class="container py-5">
-    <!-- Hero Section -->
-    <div class="row align-items-center mb-5">
-        <div class="col-lg-6">
-            <h1 class="display-4 fw-bold mb-4">
-                <span class="text-primary">Chaque don</span> sauve des vies
-            </h1>
-            <p class="lead mb-4">
-                MediLink connecte les donateurs avec les centres médicaux 
-                qui ont besoin de matériel, médicaments et fournitures.
-            </p>
-            <div class="d-grid gap-2 d-md-flex">
-                <a href="{{ path('front_don_nouveau') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-plus-circle me-2"></i> Faire un don
-                </a>
-                <a href="{{ path('front_don_liste') }}" class="btn btn-outline-primary btn-lg">
-                    <i class="fas fa-hand-holding-medical me-2"></i> Voir les dons
-                </a>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold mb-3">
+                    <i class="fas fa-heartbeat text-primary me-2"></i> Bienvenue
+                </h1>
+                <p class="lead text-muted">
+                    Bienvenue sur MediLink.
+                </p>
             </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-4">
-                    <div class="text-center">
-                        <i class="fas fa-heartbeat fa-5x text-primary mb-4"></i>
-                        <h3 class="mb-3">Statistiques en direct</h3>
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <div class="display-6 fw-bold text-primary">{{ stats.total_valides }}</div>
-                                <div class="text-muted">Dons validés</div>
-                            </div>
-                            <div class="col-6">
-                                <div class="display-6 fw-bold text-warning">{{ stats.en_attente }}</div>
-                                <div class="text-muted">En attente</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Dons récents -->
-    <div class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h3 mb-0">
-                <i class="fas fa-gift text-primary me-2"></i>
-                Dons récemment validés
-            </h2>
-            <a href="{{ path('front_don_liste') }}" class="btn btn-outline-primary">
-                Voir tous les dons <i class="fas fa-arrow-right ms-1"></i>
-            </a>
-        </div>
-        
-        {% if dons_recents is empty %}
-            <div class="text-center py-5">
-                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                <h4>Aucun don disponible</h4>
-                <p class="text-muted mb-4">Soyez le premier à faire un don !</p>
-                <a href="{{ path('front_don_nouveau') }}" class="btn btn-primary">
-                    <i class="fas fa-plus-circle me-2"></i> Commencer maintenant
-                </a>
-            </div>
-        {% else %}
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                {% for don in dons_recents %}
-                    <div class="col">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-header" style="border-left: 4px solid {{ don.categorie.couleur|default('#3498db') }};">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas {{ don.categorie.icone|default('fa-box') }} me-2" style="color: {{ don.categorie.couleur|default('#3498db') }};"></i>
-                                        <strong>{{ don.categorie.nom }}</strong>
-                                    </div>
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check-circle"></i> Validé
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title">{{ don.articleDescription|slice(0, 40) }}{% if don.articleDescription|length > 40 %}...{% endif %}</h5>
-                                
-                                {% if don.detailsSupplementaires %}
-                                    <p class="card-text text-muted small mb-3">
-                                        {{ don.detailsSupplementaires|slice(0, 80) }}...
-                                    </p>
-                                {% endif %}
-                                
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <div class="text-muted small">Quantité</div>
-                                        <div class="fw-bold">{{ don.quantite }} {{ don.unite }}</div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="text-muted small">État</div>
-                                        <div class="fw-bold">{{ don.etat }}</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between text-muted small">
-                                    <div>
-                                        <i class="fas fa-calendar me-1"></i>
-                                        {{ don.dateSoumission|date('d/m/Y') }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    </div>
-
-    <!-- Comment ça marche -->
-    <div class="card shadow border-0 mb-5">
-        <div class="card-body p-5">
-            <h2 class="text-center mb-4">
-                <i class="fas fa-play-circle text-primary me-2"></i>
-                Comment ça marche ?
-            </h2>
-            <div class="row text-center">
-                <div class="col-md-4 mb-4">
-                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i class="fas fa-edit fa-2x text-primary"></i>
-                    </div>
-                    <h4>1. Soumettez</h4>
-                    <p class="text-muted">Remplissez le formulaire avec les détails de votre don.</p>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i class="fas fa-check-circle fa-2x text-warning"></i>
-                    </div>
-                    <h4>2. Validation</h4>
-                    <p class="text-muted">Notre équipe examine et valide votre don.</p>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i class="fas fa-handshake fa-2x text-success"></i>
-                    </div>
-                    <h4>3. Distribution</h4>
-                    <p class="text-muted">Le don est mis à disposition des centres médicaux.</p>
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="h5 mb-3">À propos de MediLink</h2>
+                    <p class="text-muted mb-3">
+                        MediLink est une plateforme qui met en relation les donateurs et les structures de santé. 
+                        Vous pouvez y proposer des dons de matériel médical, de médicaments ou de fournitures, 
+                        qui seront validés par notre équipe puis mis à disposition des centres qui en ont besoin.
+                    </p>
+                    <p class="text-muted mb-0">
+                        Utilisez le menu ci-dessus pour accéder aux <strong>Dons disponibles</strong>, <strong>Faire un don</strong> ou consulter <strong>Mes dons</strong>.
+                    </p>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- CTA Final -->
-    <div class="text-center py-5">
-        <h2 class="mb-4">Prêt à faire la différence ?</h2>
-        <p class="lead mb-4">Rejoignez notre communauté de donateurs et contribuez à sauver des vies.</p>
-        <a href="{{ path('front_don_nouveau') }}" class="btn btn-primary btn-lg px-5">
-            <i class="fas fa-heart me-2"></i> Faire un don maintenant
-        </a>
     </div>
 </div>
 {% endblock %}

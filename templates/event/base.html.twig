@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}MediLink - Événements{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>{{ include('_styles_front.html.twig') }}{% block event_styles %}{% endblock %}</style>
+</head>
+<body class="{% if app.request.attributes.get('_route') is defined and app.request.attributes.get('_route') starts with 'front_don' %}page-dons{% endif %}">
+<header class="header">
+  <div class="container">
+    <div class="logo">
+      <i class="fas fa-heartbeat"></i>
+      <h1>Medi<span>Link</span></h1>
+    </div>
+    <nav class="nav">
+      <a href="{{ path('front_home') }}">
+        <i class="fa-solid fa-home"></i> Accueil
+      </a>
+      <a href="{{ path('app_events_index') }}" class="{% if app.request.attributes.get('_route') starts with 'app_events' %}active{% endif %}">
+        <i class="fa-solid fa-calendar-days"></i> Événements
+      </a>
+      <a href="{{ path('patient_rendezvous_index') }}" class="{% if app.request.attributes.get('_route') starts with 'patient_rendezvous' %}active{% endif %}">
+        <i class="fa-solid fa-calendar-check"></i> Rendez-vous
+      </a>
+      <a href="{{ path('patient_medicaments_index') }}" class="{% if app.request.attributes.get('_route') starts with 'patient_medicaments' or app.request.attributes.get('_route') == 'patient_medicament_show' %}active{% endif %}">
+        <i class="fa-solid fa-pills"></i> Médicaments
+      </a>
+      <a href="{{ path('front_don_liste') }}" class="{% if app.request.attributes.get('_route') is defined and app.request.attributes.get('_route') starts with 'front_don' %}active{% endif %}">
+        <i class="fa-solid fa-hand-holding-medical"></i> Dons
+      </a>
+      <div class="user-info">
+        <i class="fas fa-user-circle"></i>
+        <span>{{ app.user ? app.user.fullName : 'Participant' }}</span>
+      </div>
+      <a href="{{ path('app_logout') }}" title="Déconnexion">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </a>
+    </nav>
+    <button class="mobile-menu-btn" aria-label="Menu"><i class="fas fa-bars"></i></button>
+  </div>
+</header>
+
+<main class="main-content">
+  <div class="container">
+    {% for label, messages in app.flashes %}
+      {% for message in messages %}
+        <div class="card">{{ message }}</div>
+      {% endfor %}
+    {% endfor %}
+    {% block body %}{% endblock %}
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <p>MediLink &copy; 2026 - Plateforme de gestion médicale</p>
+  </div>
+</footer>
+
+{% block event_scripts %}{% endblock %}
+<script>
+  document.querySelector('.mobile-menu-btn')?.addEventListener('click', function() {
+    const nav = document.querySelector('.nav');
+    nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+  });
+</script>
+</body>
+</html>

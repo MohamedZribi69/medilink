@@ -1,0 +1,207 @@
+{% extends 'medecin/base.html.twig' %}
+
+{% block title %}Espace médecin - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-calendar-check"></i> Mes rendez-vous</h2>
+    <p>Liste des rendez-vous réservés sur vos créneaux.</p>
+  </div>
+
+  <form class="toolbar" method="get" action="{{ path('medecin_index') }}" style="margin-bottom: 20px;">
+    <div class="searchbox">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input name="q" value="{{ filters.q }}" type="text" placeholder="Rechercher par patient, motif..." />
+    </div>
+    <div class="filters">
+      <select name="statut_rdv" class="input" style="min-width: 140px;">
+        <option value="">Tous les statuts</option>
+        {% for label, code in statutsRdv %}
+          <option value="{{ code }}" {% if filters.statut_rdv == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <a class="btn-secondary" href="{{ path('medecin_index', { q: filters.q, statut_rdv: filters.statut_rdv, ordre_rdv: 'asc', statut_dispo: filters.statut_dispo, ordre_dispo: filters.ordre_dispo }) }}">
+        <i class="fa-solid fa-sort-numeric-down"></i> Date croissant
+      </a>
+      <a class="btn-secondary" href="{{ path('medecin_index', { q: filters.q, statut_rdv: filters.statut_rdv, ordre_rdv: 'desc', statut_dispo: filters.statut_dispo, ordre_dispo: filters.ordre_dispo }) }}">
+        <i class="fa-solid fa-sort-numeric-down-alt"></i> Date décroissant
+      </a>
+      <a class="btn-secondary" href="{{ path('medecin_index', { statut_dispo: filters.statut_dispo, ordre_dispo: filters.ordre_dispo }) }}">
+        <i class="fa-solid fa-rotate-left"></i> Reset RDV
+      </a>
+    </div>
+  </form>
+
+  <script>
+    document.querySelector('select[name="statut_rdv"]')?.addEventListener('change', function() {
+      this.form.submit();
+    });
+  </script>
+
+  <div class="table-container" style="margin-bottom: 30px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Date et heure</th>
+          <th>Patient</th>
+          <th>Motif</th>
+          <th>Statut</th>
+          <th style="width: 260px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in mesRendezVous %}
+          <tr>
+            <td>{{ r.dateHeure|date('d/m/Y H:i') }}</td>
+            <td>{{ r.patient ? r.patient.fullName : '-' }}</td>
+            <td>{{ r.motif ?: '-' }}</td>
+            <td>
+              <span class="badge badge-{{ r.statut == 'confirme' ? 'success' : (r.statut == 'annule' ? 'error' : (r.statut == 'termine' ? 'default' : 'warning')) }}">
+                {{ statutsRdvLabels[r.statut] ?? r.statut }}
+              </span>
+            </td>
+            <td>
+              <div class="actions">
+                {% if r.statut != 'annule' %}
+                  <a href="{{ path('calendar_rendezvous', { id: r.id }) }}" class="btn-calendar-sm" title="Ajouter au calendrier">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                  </a>
+                {% endif %}
+                {% if r.statut == 'en_attente' %}
+                  <form method="post" action="{{ path('medecin_rendezvous_confirmer', { id: r.id }) }}" style="display:inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('confirmer_rdv_' ~ r.id) }}">
+                    <button type="submit" class="icon-btn" title="Confirmer"><i class="fa-solid fa-check"></i></button>
+                  </form>
+                {% endif %}
+                {% if r.statut in ['en_attente', 'confirme'] %}
+                  <form method="post" action="{{ path('medecin_rendezvous_terminer', { id: r.id }) }}" style="display:inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('terminer_rdv_' ~ r.id) }}">
+                    <button type="submit" class="icon-btn" title="Marquer terminé"><i class="fa-solid fa-flag-checkered"></i></button>
+                  </form>
+                {% endif %}
+                {% if r.statut != 'annule' %}
+                  <form method="post" action="{{ path('medecin_rendezvous_annuler', { id: r.id }) }}" style="display:inline" onsubmit="return confirm('Annuler ce rendez-vous ? La disponibilité sera libérée.');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('annuler_rdv_' ~ r.id) }}">
+                    <button type="submit" class="icon-btn" title="Annuler" style="color: var(--error-color);"><i class="fa-solid fa-xmark"></i></button>
+                  </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5">Aucun rendez-vous pour le moment. Les patients réservent vos disponibilités libres.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-header" style="margin-top: 40px;">
+    <h2><i class="fa-solid fa-clock"></i> Mes disponibilités</h2>
+    <p>Gérez vos disponibilités. Elles peuvent être réservées pour des rendez-vous par les patients ou l'administration.</p>
+  </div>
+
+  <form class="toolbar" method="get" action="{{ path('medecin_index') }}" style="margin-bottom: 15px;">
+    <input type="hidden" name="q" value="{{ filters.q }}">
+    <input type="hidden" name="statut_rdv" value="{{ filters.statut_rdv }}">
+    <input type="hidden" name="ordre_rdv" value="{{ filters.ordre_rdv }}">
+    <div class="filters">
+      <select name="statut_dispo" class="input" style="min-width: 140px;">
+        <option value="">Tous les statuts</option>
+        {% for label, code in statutsDispo %}
+          <option value="{{ code }}" {% if filters.statut_dispo == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <a class="btn-secondary" href="{{ path('medecin_index', { q: filters.q, statut_rdv: filters.statut_rdv, ordre_rdv: filters.ordre_rdv, statut_dispo: filters.statut_dispo, ordre_dispo: 'asc' }) }}">
+        <i class="fa-solid fa-sort-numeric-down"></i> Date croissant
+      </a>
+      <a class="btn-secondary" href="{{ path('medecin_index', { q: filters.q, statut_rdv: filters.statut_rdv, ordre_rdv: filters.ordre_rdv, statut_dispo: filters.statut_dispo, ordre_dispo: 'desc' }) }}">
+        <i class="fa-solid fa-sort-numeric-down-alt"></i> Date décroissant
+      </a>
+      <a class="btn-secondary" href="{{ path('medecin_index', { q: filters.q, statut_rdv: filters.statut_rdv, ordre_rdv: filters.ordre_rdv }) }}">
+        <i class="fa-solid fa-rotate-left"></i> Reset dispo
+      </a>
+    </div>
+    <a href="{{ path('medecin_creneaux_new') }}" class="btn-primary" style="text-decoration: none;">
+      <i class="fa-solid fa-plus"></i> Nouvelle disponibilité
+    </a>
+  </form>
+
+  <script>
+    document.querySelector('form.toolbar select[name="statut_dispo"]')?.addEventListener('change', function() {
+      this.form.submit();
+    });
+  </script>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Heure début</th>
+          <th>Heure fin</th>
+          <th>Statut</th>
+          <th style="width: 200px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in disponibilites %}
+          <tr>
+            <td>{{ d.date|date('d/m/Y') }}</td>
+            <td>{{ d.heureDebut|date('H:i') }}</td>
+            <td>{{ d.heureFin|date('H:i') }}</td>
+            <td>
+              <span class="badge badge-{{ d.status == 'reservee' ? 'success' : (d.status == 'annulee' ? 'error' : '') }}">
+                {{ statutsLabels[d.status] ?? d.status }}
+              </span>
+            </td>
+            <td>
+              <div class="actions">
+                {% if d.status == 'libre' %}
+                  <a class="icon-btn" title="Modifier" href="{{ path('medecin_creneaux_edit', { id: d.id }) }}">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </a>
+                  <form method="post" action="{{ path('medecin_creneaux_delete', { id: d.id }) }}" style="display:inline" onsubmit="return confirm('Supprimer cette disponibilité ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_creneau_' ~ d.id) }}">
+                    <button class="icon-btn" title="Supprimer" type="submit">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </form>
+                {% else %}
+                  <span class="hint">Réservé</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5">Aucune disponibilité. <a href="{{ path('medecin_creneaux_new') }}">Ajouter une disponibilité</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<style>
+.btn-calendar-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--light-blue);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.btn-calendar-sm:hover {
+  background: var(--primary-color);
+  color: var(--white);
+}
+</style>
+{% endblock %}

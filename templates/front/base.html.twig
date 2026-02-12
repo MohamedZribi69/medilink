@@ -39,33 +39,60 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ app.request.get('_route') == 'front_don_liste' ? 'active' : '' }}" href="{{ path('front_don_liste') }}">
-                            <i class="fas fa-hand-holding-medical me-1"></i> Dons disponibles
+                        <a class="nav-link {{ app.request.get('_route') == 'app_events_index' ? 'active' : '' }}" href="{{ path('app_events_index') }}">
+                            <i class="fas fa-calendar-day me-1"></i> Événements
                         </a>
                     </li>
-
-                    {# Liens réservés à l'espace donateur (non utilisés quand mode=public) #}
-                    {% if app.request.get('mode') != 'public' %}
-                        <li class="nav-item">
-                            <a class="nav-link {{ app.request.get('_route') == 'front_don_nouveau' ? 'active' : '' }}" href="{{ path('front_don_nouveau') }}">
-                                <i class="fas fa-plus-circle me-1"></i> Faire un don
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ app.request.get('_route') == 'front_don_mes_dons' ? 'active' : '' }}" href="{{ path('front_don_mes_dons') }}">
-                                <i class="fas fa-history me-1"></i> Mes dons
-                            </a>
-                        </li>
+                    {% if app.user %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ (app.request.get('_route')|default('')) starts with 'patient_rendezvous' ? 'active' : '' }}" href="{{ path('patient_rendezvous_index') }}">
+                            <i class="fas fa-calendar-check me-1"></i> Rendez-vous
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ (app.request.get('_route')|default('')) starts with 'patient_medicaments' or app.request.get('_route') == 'patient_medicament_show' ? 'active' : '' }}" href="{{ path('patient_medicaments_index') }}">
+                            <i class="fas fa-pills me-1"></i> Médicaments
+                        </a>
+                    </li>
                     {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ (app.request.get('_route')|default('')) starts with 'front_don' ? 'active' : '' }}" href="{{ path('front_don_liste') }}">
+                            <i class="fas fa-hand-holding-medical me-1"></i> Dons
+                        </a>
+                    </li>
                 </ul>
                 
-                <!-- Bandeau "Espace Donateur" seulement hors mode=public -->
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center gap-2">
                     {% if app.request.get('mode') != 'public' %}
-                        <div class="me-3 text-muted">
+                        <div class="me-2 text-muted small">
                             <i class="fas fa-user-circle me-1"></i>
                             <span>Espace Donateur</span>
                         </div>
+                    {% endif %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('admin_dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-cog me-1"></i> Admin
+                        </a>
+                    {% elseif is_granted('ROLE_MEDECIN') %}
+                        <a href="{{ path('medecin_index') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-user-md me-1"></i> Espace Médecin
+                        </a>
+                    {% elseif is_granted('ROLE_USER') %}
+                        <a href="{{ path('patient_rendezvous_index') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-user me-1"></i> Espace Patient
+                        </a>
+                    {% endif %}
+                    {% if app.user %}
+                        <a href="{{ path('app_logout') }}" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+                        </a>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-sign-in-alt me-1"></i> Connexion
+                        </a>
+                        <a href="{{ path('app_register') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-user-plus me-1"></i> Inscription
+                        </a>
                     {% endif %}
                     <a href="mailto:contact@medilink.org" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-envelope"></i> Contact
@@ -115,11 +142,8 @@
                 <div class="col-md-4">
                     <h5 class="mb-3">Liens rapides</h5>
                     <ul class="list-unstyled">
-                        <li><a href="{{ path('front_don_liste') }}" class="text-muted text-decoration-none">Dons disponibles</a></li>
-                        {% if app.request.get('mode') != 'public' %}
-                            <li><a href="{{ path('front_don_nouveau') }}" class="text-muted text-decoration-none">Faire un don</a></li>
-                            <li><a href="{{ path('front_don_mes_dons') }}" class="text-muted text-decoration-none">Mes dons</a></li>
-                        {% endif %}
+                        <li><a href="{{ path('front_don_liste') }}" class="text-muted text-decoration-none">Dons</a></li>
+                        <li><a href="{{ path('app_events_index') }}" class="text-muted text-decoration-none">Événements</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">

@@ -15,13 +15,18 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/don')]
 class DonController extends AbstractController
 {
-    #[Route('/nouveau', name: 'front_don_nouveau', methods: ['GET', 'POST'])]
+    #[Route('/nouveau', name: 'front_don_nouveau_legacy', methods: ['GET'])]
+    public function nouveauLegacy(): Response
+    {
+        return $this->redirectToRoute('front_don_nouveau', [], Response::HTTP_MOVED_PERMANENTLY);
+    }
+
+    #[Route('/ajouter', name: 'front_don_nouveau', methods: ['GET', 'POST'])]
     public function nouveau(
         Request $request,
         EntityManagerInterface $entityManager,
         CategoriesDonsRepository $categorieRepo
-    ): Response
-    {
+    ): Response {
         $don = new Dons();
         $form = $this->createForm(DonFrontType::class, $don);
         $form->handleRequest($request);
@@ -29,21 +34,18 @@ class DonController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($don);
             $entityManager->flush();
-
             $this->addFlash(
                 'success',
-                '✅ Votre don a été soumis avec succès ! ' .
-                'Il sera examiné par notre équipe et apparaîtra sur le site une fois validé.'
+                '✅ Votre don a été soumis avec succès ! Il sera examiné par notre équipe et apparaîtra sur le site une fois validé.'
             );
-
-            return $this->redirectToRoute('front_don_mes_dons');
+            return $this->redirectToRoute('front_don_mes_dons', [], Response::HTTP_SEE_OTHER);
         }
 
         $categories = $categorieRepo->findAll();
 
         return $this->render('front/don/nouveau.html.twig', [
             'form' => $form->createView(),
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -148,7 +150,7 @@ class DonController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/modifier', name: 'front_don_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/modifier', name: 'front_don_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function edit(
         Request $request,
         Dons $don,
@@ -183,7 +185,7 @@ class DonController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/supprimer', name: 'front_don_delete', methods: ['POST'])]
+    #[Route('/{id}/supprimer', name: 'front_don_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function delete(
         Request $request,
         Dons $don,
@@ -200,7 +202,7 @@ class DonController extends AbstractController
         return $this->redirectToRoute('front_don_mes_dons');
     }
 
-    #[Route('/{id}/annuler', name: 'front_don_cancel', methods: ['POST'])]
+    #[Route('/{id}/annuler', name: 'front_don_cancel', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function cancel(
         Request $request,
         Dons $don,

@@ -1,7 +1,10 @@
-{% extends 'front/base.html.twig' %}
+{% extends app.user ? 'event/base.html.twig' : 'front/base.html.twig' %}
 
 {% block title %}Soumettre un don - MediLink{% endblock %}
-
+{% block event_styles %}{{ parent() }}<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">{{ include('_dons_event_styles.html.twig') }}<style>
+    .unit-indicator { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--dark-gray); font-size: 0.9rem; pointer-events: none; }
+    .form-group { position: relative; }
+</style>{% endblock %}
 {% block styles %}
 <style>
     .unit-indicator {
@@ -20,111 +23,90 @@
 {% endblock %}
 
 {% block body %}
-<div class="container py-5">
+<div class="container py-5 page-dons">
     <div class="row">
         <div class="col-lg-8">
             <!-- En-tête -->
-            <div class="mb-4">
-                <h1 class="mb-3">
-                    <i class="fas fa-plus-circle text-primary me-2"></i> Soumettre un don
-                </h1>
-                <p class="text-muted">
-                    Remplissez ce formulaire pour soumettre votre don. 
-                    Notre équipe l'examinera rapidement.
+            <div class="section-header" style="margin-bottom: 24px;">
+                <h2 style="font-size: 1.75rem; color: var(--primary-color); margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-plus-circle"></i> Soumettre un don
+                </h2>
+                <p style="color: var(--dark-gray); font-size: 1.05rem;">
+                    Remplissez ce formulaire pour soumettre votre don. Notre équipe l'examinera rapidement.
                 </p>
             </div>
             
-            <!-- Formulaire -->
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-edit me-2"></i> Formulaire de don
-                    </h5>
+            <!-- Formulaire (style section comme Événements) -->
+            <div class="form-section">
+                <div class="form-section-header">
+                    <h3><i class="fas fa-edit"></i> Formulaire de don</h3>
                 </div>
-                <div class="card-body">
+                <div class="form-section-body">
                     {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    {{ form_errors(form) }}
                     
-                    <!-- Catégorie et Quantité -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                {{ form_label(form.categorie) }}
-                                {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
-                                <div class="invalid-feedback">
-                                    Veuillez sélectionner une catégorie.
-                                </div>
-                            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form_label(form.categorie) }}
+                            {{ form_widget(form.categorie, {'attr': {'class': 'input'}}) }}
+                            <div class="invalid-feedback form-error">Veuillez sélectionner une catégorie.</div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                {{ form_label(form.quantite) }}
-                                {{ form_widget(form.quantite, {'attr': {'class': 'form-control'}}) }}
-                                <span class="unit-indicator" id="unitIndicator">unités</span>
-                                <div class="invalid-feedback">
-                                    Veuillez saisir une quantité valide.
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            {{ form_label(form.quantite) }}
+                            <span class="unit-indicator" id="unitIndicator">unités</span>
+                            {{ form_widget(form.quantite, {'attr': {'class': 'input'}}) }}
+                            <div class="invalid-feedback form-error">Veuillez saisir une quantité valide.</div>
                         </div>
                     </div>
                     
-                    <!-- Description -->
-                    <div class="mb-4">
+                    <div class="form-group">
                         {{ form_label(form.articleDescription) }}
-                        {{ form_widget(form.articleDescription, {'attr': {'class': 'form-control'}}) }}
-                        <div class="invalid-feedback">
-                            Veuillez décrire l'article.
-                        </div>
+                        {{ form_widget(form.articleDescription, {'attr': {'class': 'input'}}) }}
+                        <div class="invalid-feedback form-error">Veuillez décrire l'article.</div>
                     </div>
                     
-                    <!-- Détails -->
-                    <div class="mb-4">
+                    <div class="form-group">
                         {{ form_label(form.detailsSupplementaires) }}
-                        {{ form_widget(form.detailsSupplementaires, {'attr': {'class': 'form-control', 'rows': 3}}) }}
-                        <small class="text-muted">
-                            Ex: Date d'expiration, marque, conditions de stockage...
-                        </small>
+                        {{ form_widget(form.detailsSupplementaires, {'attr': {'class': 'input', 'rows': 3}}) }}
+                        <span class="hint">Ex: Date d'expiration, marque, conditions de stockage...</span>
                     </div>
                     
-                    <!-- État et Urgence -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
+                    <div class="form-row">
+                        <div class="form-group">
                             {{ form_label(form.etat) }}
-                            {{ form_widget(form.etat, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_widget(form.etat, {'attr': {'class': 'input'}}) }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="form-group">
                             {{ form_label(form.niveauUrgence) }}
-                            {{ form_widget(form.niveauUrgence, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_widget(form.niveauUrgence, {'attr': {'class': 'input'}}) }}
                         </div>
                     </div>
                     
-                    <!-- Unité et Date expiration -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
+                    <div class="form-row">
+                        <div class="form-group">
                             {{ form_label(form.unite) }}
-                            {{ form_widget(form.unite, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_widget(form.unite, {'attr': {'class': 'input'}}) }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="form-group">
                             {{ form_label(form.dateExpiration) }}
-                            {{ form_widget(form.dateExpiration, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_widget(form.dateExpiration, {'attr': {'class': 'input'}}) }}
                             {{ form_errors(form.dateExpiration) }}
                         </div>
                     </div>
                     
-                    <!-- Information importante -->
-                    <div class="alert alert-info mb-4">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Information importante :</strong> 
-                        Votre don sera examiné par notre équipe avant d'apparaître sur le site. 
-                        Vous pouvez suivre son statut dans la section "Mes dons".
+                    <div class="alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Information importante :</strong>
+                        Votre don sera examiné par notre équipe avant d'apparaître sur le site.
+                        Vous pouvez suivre son statut dans la section « Mes dons ».
                     </div>
                     
-                    <!-- Actions -->
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="reset" class="btn btn-outline-secondary me-md-2">
-                            <i class="fas fa-eraser me-1"></i> Effacer
+                    <div class="form-actions">
+                        <button type="reset" class="btn-secondary">
+                            <i class="fas fa-eraser"></i> Effacer
                         </button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane me-1"></i> Soumettre le don
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-paper-plane"></i> Soumettre le don
                         </button>
                     </div>
                     
@@ -211,8 +193,8 @@
                         <strong>Temps de traitement :</strong>
                         <span class="text-muted">24-48 heures</span>
                     </p>
-                    <a href="{{ path('front_don_mes_dons') }}" class="btn btn-outline-info w-100">
-                        <i class="fas fa-list me-1"></i> Voir mes dons
+                    <a href="{{ path('front_don_mes_dons') }}" class="btn-secondary" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-list"></i> Voir mes dons
                     </a>
                 </div>
             </div>

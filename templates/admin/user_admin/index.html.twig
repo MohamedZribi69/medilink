@@ -1,0 +1,18 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Utilisateurs - MediLink{% endblock %}
+{% block page_title %}Utilisateurs{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <p class="mb-0 text-secondary">Gestion des utilisateurs du back-office.</p>
+  </div>
+  <div class="table-container" style="max-width: 500px;">
+    <p class="mb-3">La gestion des utilisateurs (création, modification, rôles) se fait depuis la section <strong>Utilisateurs</strong> du menu.</p>
+    <a href="{{ path('admin_users_index') }}" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+      <i class="fa-solid fa-users"></i> Aller à la gestion des utilisateurs
+    </a>
+  </div>
+</section>
+{% endblock %}

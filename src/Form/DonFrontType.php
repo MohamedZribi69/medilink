@@ -51,9 +51,9 @@ class DonFrontType extends AbstractType
                     'Seringues' => 'seringues',
                     'Autre' => 'autre'
                 ],
+                'data' => 'unités',
                 'attr' => ['class' => 'form-control'],
                 'label' => 'Unité de mesure',
-                'placeholder' => 'Sélectionnez une unité'
             ])
             ->add('detailsSupplementaires', TextareaType::class, [
                 'attr' => [

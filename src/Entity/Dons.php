@@ -6,6 +6,7 @@ use App\Repository\DonsRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: DonsRepository::class)]
 #[ORM\Table(name: 'dons')]
@@ -57,11 +58,21 @@ class Dons
     private ?string $statut = self::STATUT_EN_ATTENTE;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true, name: 'date_expiration')]
-    #[Assert\GreaterThan(
-        value: 'today',
-        message: 'La date d\'expiration doit être strictement postérieure à la date d\'aujourd\'hui.'
-    )]
+    #[Assert\Callback(callback: [self::class, 'validateDateExpiration'])]
     private ?\DateTimeInterface $dateExpiration = null;
+
+    public static function validateDateExpiration(?\DateTimeInterface $value, ExecutionContextInterface $context): void
+    {
+        if ($value === null) {
+            return;
+        }
+        $today = new \DateTimeImmutable('today');
+        if ($value <= $today) {
+            $context->buildViolation('La date d\'expiration doit être postérieure à aujourd\'hui (ou laisser vide).')
+                ->atPath('dateExpiration')
+                ->addViolation();
+        }
+    }
 
     #[ORM\Column(name: 'date_soumission')]
     private ?\DateTimeImmutable $dateSoumission = null;
