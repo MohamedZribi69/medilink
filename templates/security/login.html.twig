@@ -1,0 +1,63 @@
+{% extends 'security/auth_base.html.twig' %}
+
+{% block title %}Connexion | MediLink{% endblock %}
+
+{% block content %}
+  <div class="auth-head">
+    <h1><i class="fa-solid fa-right-to-bracket"></i> Connexion</h1>
+  </div>
+
+  <div class="auth-body">
+    {% if error %}
+      <div class="alert alert-error">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        {{ error.messageKey|trans(error.messageData, 'security') }}
+      </div>
+    {% endif %}
+
+    {% if app.user %}
+      <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check"></i>
+        Vous êtes connecté en tant que <strong>{{ app.user.userIdentifier }}</strong>.
+        <a class="link" href="{{ path('app_logout') }}">Se déconnecter</a>
+      </div>
+    {% endif %}
+
+    <form method="post">
+      <div class="form-group">
+        <label for="inputEmail"><i class="fa-solid fa-envelope"></i> Email</label>
+        <input class="input" type="email" value="{{ last_username }}" name="email" id="inputEmail" autocomplete="email" required autofocus placeholder="ex: user@medilink.tn">
+      </div>
+
+      <div class="form-group">
+        <label for="inputPassword"><i class="fa-solid fa-lock"></i> Mot de passe</label>
+        <input class="input" type="password" name="password" id="inputPassword" autocomplete="current-password" required placeholder="Votre mot de passe">
+      </div>
+
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+      <div class="row">
+        <label class="checkbox">
+          <input type="checkbox" name="_remember_me">
+          Se souvenir de moi
+        </label>
+
+        <a class="link" href="{{ path('app_register') }}">Créer un compte</a>
+      </div>
+
+      <div style="margin-top:16px;">
+        <button class="btn-primary" type="submit">
+          <i class="fa-solid fa-right-to-bracket"></i> Se connecter
+        </button>
+      </div>
+
+      <p class="hint">
+        Accès BackOffice réservé aux administrateurs.
+      </p>
+
+      <div class="hint" style="margin-top: 20px; padding: 12px; background: #e8f0fe; border-radius: 8px; font-size: 0.9rem;">
+        <strong>Test :</strong> patient@medilink.test / patient123 &nbsp;|&nbsp; medecin@medilink.test / medecin123
+      </div>
+    </form>
+  </div>
+{% endblock %}
