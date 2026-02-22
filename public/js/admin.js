@@ -46,22 +46,23 @@ function updateTime() {
     });
 }
 
-// Sidebar mobile
+// Sidebar mobile (hamburger + overlay)
 function initMobileSidebar() {
     const sidebar = document.querySelector('.sidebar');
-    const toggleBtn = document.querySelector('[onclick="toggleSidebar()"]');
+    const toggleBtn = document.querySelector('.topbar-menu-toggle, [onclick="toggleSidebar()"]');
     
     if (toggleBtn && sidebar) {
         toggleBtn.addEventListener('click', function() {
             sidebar.classList.toggle('active');
+            document.body.classList.toggle('sidebar-open', sidebar.classList.contains('active'));
         });
     }
     
-    // Fermer la sidebar en cliquant à l'extérieur
     document.addEventListener('click', function(event) {
         if (window.innerWidth <= 992 && sidebar && sidebar.classList.contains('active')) {
-            if (!sidebar.contains(event.target) && !event.target.closest('[onclick="toggleSidebar()"]')) {
+            if (!sidebar.contains(event.target) && !event.target.closest('.topbar-menu-toggle')) {
                 sidebar.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
             }
         }
     });

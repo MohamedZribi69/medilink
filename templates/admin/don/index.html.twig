@@ -1,0 +1,250 @@
+{# templates/admin/don/index.html.twig #}
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Gestion des dons - MediLink{% endblock %}
+{% block page_title %}Dons{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-donate me-2"></i> Gestion des dons
+            <span class="badge bg-primary ms-2">{{ dons|length }}</span>
+        </h1>
+        
+        <div class="btn-group" role="group">
+            <a href="{{ path('admin_don_index', {'statut': 'en_attente'}) }}" 
+               class="btn btn-outline-warning {{ statut == 'en_attente' ? 'active' : '' }}">
+                En attente ({{ stats.en_attente }})
+            </a>
+            <a href="{{ path('admin_don_index', {'statut': 'valide'}) }}" 
+               class="btn btn-outline-success {{ statut == 'valide' ? 'active' : '' }}">
+                Validés ({{ stats.valides }})
+            </a>
+            <a href="{{ path('admin_don_index', {'statut': 'rejete'}) }}" 
+               class="btn btn-outline-danger {{ statut == 'rejete' ? 'active' : '' }}">
+                Rejetés ({{ stats.rejetes }})
+            </a>
+            <a href="{{ path('admin_don_index', {'statut': 'tous'}) }}" 
+               class="btn btn-outline-secondary {{ statut == 'tous' ? 'active' : '' }}">
+                Tous ({{ stats.total }})
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistiques + catégories les plus disponibles -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body py-3">
+                    <div class="row g-3 text-center">
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 rounded-3 bg-primary bg-opacity-10">
+                                <div class="text-primary mb-1">
+                                    <i class="fas fa-donate"></i>
+                                </div>
+                                <div class="h4 mb-0 text-primary">{{ stats.total }}</div>
+                                <div class="text-muted small">Total dons</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 rounded-3 bg-warning bg-opacity-10">
+                                <div class="text-warning mb-1">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="h4 mb-0 text-warning">{{ stats.en_attente }}</div>
+                                <div class="text-muted small">En attente</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 rounded-3 bg-success bg-opacity-10">
+                                <div class="text-success mb-1">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="h4 mb-0 text-success">{{ stats.valides }}</div>
+                                <div class="text-muted small">Validés</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 rounded-3 bg-danger bg-opacity-10">
+                                <div class="text-danger mb-1">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                                <div class="h4 mb-0 text-danger">{{ stats.rejetes }}</div>
+                                <div class="text-muted small">Rejetés</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mt-3 mt-lg-0">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body py-3">
+                    <h6 class="text-muted mb-3 d-flex align-items-center">
+                        <i class="fas fa-chart-pie me-2 text-primary"></i>
+                        Catégories les plus disponibles (validées)
+                    </h6>
+                    {% if categoriesStats is not empty %}
+                        {% set totalValides = 0 %}
+                        {% for row in categoriesStats %}
+                            {% set totalValides = totalValides + row.total %}
+                        {% endfor %}
+
+                        <ul class="list-unstyled mb-0 small">
+                            {% for row in categoriesStats|slice(0,5) %}
+                                {% set pct = totalValides > 0 ? (row.total / totalValides * 100)|round : 0 %}
+                                <li class="mb-2">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>{{ row.nom }}</span>
+                                        <span class="text-muted">{{ row.total }} dons • {{ pct }}%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ pct }}%;"></div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-muted small">
+                            Aucune statistique disponible pour le moment.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres et liste des dons -->
+    <div class="card shadow">
+        <div class="card-body">
+            <!-- Filtres avancés -->
+            <form method="get" class="row g-2 mb-3">
+                <input type="hidden" name="statut" value="{{ statut }}">
+                <div class="col-md-3">
+                    <input type="text" name="q" value="{{ currentFilters.q }}" class="form-control"
+                           placeholder="Rechercher (description, détails)...">
+                </div>
+                <div class="col-md-3">
+                    <select name="categorie" class="form-select">
+                        <option value="">Toutes les catégories</option>
+                        {% for categorie in categories %}
+                            <option value="{{ categorie.id }}" {{ currentFilters.categorie == categorie.id ? 'selected' : '' }}>
+                                {{ categorie.nom }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="urgence" class="form-select">
+                        <option value="">Urgence (toutes)</option>
+                        <option value="Faible" {{ currentFilters.urgence == 'Faible' ? 'selected' : '' }}>Faible</option>
+                        <option value="Moyen" {{ currentFilters.urgence == 'Moyen' ? 'selected' : '' }}>Moyen</option>
+                        <option value="Élevé" {{ currentFilters.urgence == 'Élevé' ? 'selected' : '' }}>Élevé</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="sort" class="form-select">
+                        <option value="date" {{ currentFilters.sort == 'date' ? 'selected' : '' }}>Tri par date</option>
+                        <option value="quantite" {{ currentFilters.sort == 'quantite' ? 'selected' : '' }}>Tri par quantité</option>
+                        <option value="categorie" {{ currentFilters.sort == 'categorie' ? 'selected' : '' }}>Tri par catégorie</option>
+                        <option value="urgence" {{ currentFilters.sort == 'urgence' ? 'selected' : '' }}>Tri par urgence</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex">
+                    <select name="direction" class="form-select me-2">
+                        <option value="DESC" {{ currentFilters.direction == 'DESC' ? 'selected' : '' }}>Desc</option>
+                        <option value="ASC" {{ currentFilters.direction == 'ASC' ? 'selected' : '' }}>Asc</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </form>
+
+            {% if dons is empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h4>Aucun don trouvé</h4>
+                    <p class="text-muted">Aucun don ne correspond au filtre sélectionné.</p>
+                    <a href="{{ path('admin_don_index', {'statut': 'tous'}) }}" class="btn btn-primary">
+                        Voir tous les dons
+                    </a>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Description</th>
+                                <th>Catégorie</th>
+                                <th>Quantité</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for don in dons %}
+                                <tr>
+                                    <td>#{{ don.id }}</td>
+                                    <td>
+                                        <strong>{{ don.articleDescription|slice(0, 40) }}{% if don.articleDescription|length > 40 %}...{% endif %}</strong>
+                                        {% if don.detailsSupplementaires %}
+                                            <br><small class="text-muted">{{ don.detailsSupplementaires|slice(0, 50) }}...</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ don.categorie.couleur|default('#3498db') }}20; color: {{ don.categorie.couleur|default('#3498db') }};">
+                                            <i class="fas {{ don.categorie.icone|default('fa-box') }} me-1"></i>
+                                            {{ don.categorie.nom }}
+                                        </span>
+                                    </td>
+                                    <td>{{ don.quantite }} {{ don.unite }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ don.couleurStatut }}">
+                                            {{ don.statutLabel }}
+                                        </span>
+                                    </td>
+                                    <td>{{ don.dateSoumission|date('d/m/Y') }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ path('admin_don_show', {'id': don.id}) }}" class="btn btn-info" title="Voir">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ path('admin_don_edit', {'id': don.id}) }}" class="btn btn-warning" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% if don.estEnAttente %}
+                                                <form action="{{ path('admin_don_valider', {'id': don.id}) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('valider' ~ don.id) }}">
+                                                    <button type="submit" class="btn btn-success" title="Valider">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ path('admin_don_rejeter', {'id': don.id}) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('rejeter' ~ don.id) }}">
+                                                    <button type="submit" class="btn btn-danger" title="Rejeter">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            <form action="{{ path('admin_don_delete', {'id': don.id}) }}" method="post" class="d-inline" onsubmit="return confirm('Supprimer définitivement ce don ?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ don.id) }}">
+                                                <button type="submit" class="btn btn-outline-danger" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends app.user ? 'event/base.html.twig' : 'front/base.html.twig' %}
+
+{% block title %}Dons disponibles - MediLink{% endblock %}
+{% block event_styles %}{{ parent() }}<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">{{ include('_dons_event_styles.html.twig') }}{% endblock %}
+
+{% block body %}
+<div class="container py-5 page-dons">
+    <div class="section-header" style="margin-bottom: 24px;">
+        <h2 style="font-size: 1.75rem; color: var(--primary-color); margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-hand-holding-medical"></i> Dons disponibles
+        </h2>
+        <p style="color: var(--dark-gray); font-size: 1.05rem; margin-bottom: 16px;">
+            Tous les dons affichés ici ont été validés par notre équipe.
+        </p>
+        <div class="actions" style="margin-top: 12px;">
+            <a href="{{ path('front_don_nouveau') }}" class="btn-primary">
+                <i class="fas fa-plus-circle"></i> Ajouter un don
+            </a>
+            <a href="{{ path('front_don_mes_dons') }}" class="btn-secondary">
+                <i class="fas fa-history"></i> Voir mes dons
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres (style toolbar / recherche / tri comme Événements) -->
+    <form method="get" class="dons-toolbar">
+        <div class="searchbox">
+            <i class="fas fa-search"></i>
+            <input type="text" name="q" value="{{ currentFilters.q }}" placeholder="Rechercher un don...">
+        </div>
+        <div class="filters">
+            <select name="categorie" onchange="this.form.submit()">
+                <option value="">Toutes les catégories</option>
+                {% for categorie in categories %}
+                    <option value="{{ categorie.id }}" {{ currentFilters.categorie == categorie.id ? 'selected' : '' }}>{{ categorie.nom }}</option>
+                {% endfor %}
+            </select>
+            <select name="urgence" onchange="this.form.submit()">
+                <option value="">Urgence (toutes)</option>
+                <option value="Faible" {{ currentFilters.urgence == 'Faible' ? 'selected' : '' }}>Faible</option>
+                <option value="Moyen" {{ currentFilters.urgence == 'Moyen' ? 'selected' : '' }}>Moyen</option>
+                <option value="Élevé" {{ currentFilters.urgence == 'Élevé' ? 'selected' : '' }}>Élevé</option>
+            </select>
+            <select name="sort" onchange="this.form.submit()">
+                <option value="date" {{ currentFilters.sort == 'date' ? 'selected' : '' }}>Tri par date</option>
+                <option value="quantite" {{ currentFilters.sort == 'quantite' ? 'selected' : '' }}>Tri par quantité</option>
+                <option value="categorie" {{ currentFilters.sort == 'categorie' ? 'selected' : '' }}>Tri par catégorie</option>
+                <option value="urgence" {{ currentFilters.sort == 'urgence' ? 'selected' : '' }}>Tri par urgence</option>
+            </select>
+            <select name="direction" onchange="this.form.submit()">
+                <option value="DESC" {{ currentFilters.direction == 'DESC' ? 'selected' : '' }}>Desc</option>
+                <option value="ASC" {{ currentFilters.direction == 'ASC' ? 'selected' : '' }}>Asc</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-submit"><i class="fas fa-filter"></i> Filtrer</button>
+    </form>
+    
+    <!-- Liste des dons (style cartes = Événements) -->
+    {% if dons is empty %}
+        <div class="dons-empty">
+            <i class="fas fa-inbox"></i>
+            <p><strong>Aucun don disponible pour le moment.</strong></p>
+            <p style="font-size: 0.95rem; margin-top: 8px;">Cette page affiche uniquement les dons <strong>validés</strong> par notre équipe. Vos dons en attente sont dans « Mes dons » et apparaîtront ici une fois validés.</p>
+            <div class="actions" style="margin-top: 20px; justify-content: center; flex-wrap: wrap;">
+                <a href="{{ path('front_don_nouveau') }}" class="btn-primary">
+                    <i class="fas fa-plus-circle"></i> Ajouter un don
+                </a>
+                <a href="{{ path('front_don_mes_dons') }}" class="btn-secondary">
+                    <i class="fas fa-history"></i> Voir mes dons
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="dons-cards" id="dons-container">
+            {% for don in dons %}
+                <article class="don-card" data-category="{{ don.categorie.id }}">
+                    <div class="don-card-header" style="background: linear-gradient(135deg, {{ don.categorie.couleur|default('#1a73e8') }}, {{ don.categorie.couleur|default('#0d62d9') }});">
+                        <h3>{{ don.articleDescription|length > 50 ? don.articleDescription|slice(0, 50) ~ '…' : don.articleDescription }}</h3>
+                        <span class="don-category">{{ don.categorie.nom }}</span>
+                        <span class="badge bg-success mt-2" style="opacity: 0.95;"><i class="fas fa-check-circle"></i> Validé</span>
+                    </div>
+                    <div class="don-card-body">
+                        <div class="don-card-meta">
+                            <span><i class="fas fa-calendar"></i> {{ don.dateSoumission|date('d/m/Y') }}</span>
+                            <span><i class="fas fa-cubes"></i> {{ don.quantite }} {{ don.unite }}</span>
+                            <span><i class="fas fa-tag"></i> {{ don.etat }}</span>
+                            <span>
+                                <i class="fas fa-exclamation-circle"></i>
+                                {% if don.niveauUrgence == 'Élevé' %}<span class="badge bg-danger">{{ don.niveauUrgence }}</span>
+                                {% elseif don.niveauUrgence == 'Moyen' %}<span class="badge bg-warning text-dark">{{ don.niveauUrgence }}</span>
+                                {% else %}<span class="badge bg-success">{{ don.niveauUrgence }}</span>{% endif %}
+                            </span>
+                        </div>
+                        {% if don.detailsSupplementaires %}
+                            <p class="don-card-desc">{{ don.detailsSupplementaires|slice(0, 120) }}{% if don.detailsSupplementaires|length > 120 %}…{% endif %}</p>
+                        {% else %}
+                            <p class="don-card-desc" style="color: var(--medium-gray); font-style: italic;">Aucun détail supplémentaire.</p>
+                        {% endif %}
+                    </div>
+                    <div class="don-card-footer">
+                        <a href="{{ path('front_don_nouveau') }}" class="btn-don-action" style="text-decoration: none;">
+                            <i class="fas fa-plus-circle"></i> Faire un don
+                        </a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block event_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

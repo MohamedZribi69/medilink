@@ -1,0 +1,133 @@
+{% extends app.user ? 'event/base.html.twig' : 'front/base.html.twig' %}
+
+{% block title %}Modifier mon don - MediLink{% endblock %}
+{% block event_styles %}{{ parent() }}<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">{{ include('_dons_event_styles.html.twig') }}{% endblock %}
+
+{% block body %}
+<div class="container py-5 page-dons">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- En-tête (même style que Soumettre un don) -->
+            <div class="section-header" style="margin-bottom: 24px;">
+                <h2 style="font-size: 1.75rem; color: var(--primary-color); margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-edit"></i> Modifier mon don
+                    <span class="badge bg-{{ don.couleurStatut }}" style="font-size: 0.8rem; font-weight: 600;">{{ don.statutLabel }}</span>
+                </h2>
+                <p style="color: var(--dark-gray); font-size: 1.05rem;">
+                    Modifiez les informations de votre don #{{ don.id }}.
+                </p>
+            </div>
+
+            <!-- Formulaire (même style que formulaire d'ajout) -->
+            <div class="form-section">
+                <div class="form-section-header">
+                    <h3><i class="fas fa-edit"></i> Modification du don #{{ don.id }}</h3>
+                </div>
+                <div class="form-section-body">
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form_label(form.categorie) }}
+                            {{ form_widget(form.categorie, {'attr': {'class': 'input'}}) }}
+                            <div class="invalid-feedback form-error">Veuillez sélectionner une catégorie.</div>
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(form.quantite) }}
+                            {{ form_widget(form.quantite, {'attr': {'class': 'input'}}) }}
+                            <div class="invalid-feedback form-error">Veuillez saisir une quantité valide.</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.articleDescription) }}
+                        {{ form_widget(form.articleDescription, {'attr': {'class': 'input'}}) }}
+                        <div class="invalid-feedback form-error">Veuillez décrire l'article.</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form_label(form.unite) }}
+                            {{ form_widget(form.unite, {'attr': {'class': 'input'}}) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(form.dateExpiration) }}
+                            {{ form_widget(form.dateExpiration, {'attr': {'class': 'input'}}) }}
+                            {{ form_errors(form.dateExpiration) }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.detailsSupplementaires) }}
+                        {{ form_widget(form.detailsSupplementaires, {'attr': {'class': 'input', 'rows': 3}}) }}
+                        <span class="hint">Ex: Date d'expiration, marque, conditions de stockage...</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form_label(form.etat) }}
+                            {{ form_widget(form.etat, {'attr': {'class': 'input'}}) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(form.niveauUrgence) }}
+                            {{ form_widget(form.niveauUrgence, {'attr': {'class': 'input'}}) }}
+                        </div>
+                    </div>
+
+                    <div class="alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Informations :</strong>
+                        Don #{{ don.id }} • Soumis le {{ don.dateSoumission|date('d/m/Y à H:i') }} • Statut : <span class="badge bg-{{ don.couleurStatut }}">{{ don.statutLabel }}</span>.
+                        Après modification, le délai de validation recommence.
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{{ path('front_don_mes_dons') }}" class="btn-secondary">
+                            <i class="fas fa-times"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar (style cohérent avec la page dons) -->
+        <div class="col-lg-4 mt-5 mt-lg-0">
+            <div class="form-section" style="margin-bottom: 24px;">
+                <div class="form-section-header" style="background: linear-gradient(135deg, #dc3545, #c82333);">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Actions</h3>
+                </div>
+                <div class="form-section-body">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        {% if don.estEnAttente %}
+                        <form action="{{ path('front_don_cancel', {'id': don.id}) }}" method="post" style="margin: 0;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ don.id) }}">
+                            <button type="submit" class="btn-secondary" style="width: 100%; justify-content: center; border-color: var(--error-color); color: var(--error-color);"
+                                    onclick="return confirm('Êtes-vous sûr de vouloir annuler ce don ?');">
+                                <i class="fas fa-ban"></i> Annuler ce don
+                            </button>
+                        </form>
+                        {% endif %}
+                        <form action="{{ path('front_don_delete', {'id': don.id}) }}" method="post" style="margin: 0;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ don.id) }}">
+                            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; background: var(--error-color); border: none;"
+                                    onclick="return confirm('Supprimer définitivement ce don ? Cette action est irréversible.');">
+                                <i class="fas fa-trash"></i> Supprimer définitivement
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <a href="{{ path('front_don_mes_dons') }}" class="btn-secondary" style="width: 100%; justify-content: center; display: inline-flex;">
+                <i class="fas fa-arrow-left"></i> Retour à mes dons
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

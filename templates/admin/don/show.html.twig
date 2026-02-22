@@ -1,0 +1,235 @@
+{# templates/admin/don/show.html.twig #}
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Détails du don #{{ don.id }} - MediLink{% endblock %}
+{% block page_title %}Dons{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-eye me-2"></i> Détails du don
+            <span class="badge bg-{{ don.couleurStatut }} ms-2">{{ don.statutLabel }}</span>
+        </h1>
+        <div class="btn-group">
+            <a href="{{ path('admin_don_index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Retour à la liste
+            </a>
+            <a href="{{ path('admin_don_edit', {'id': don.id}) }}" class="btn btn-warning">
+                <i class="fas fa-edit me-1"></i> Modifier
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations principales -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i> Informations du don
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th width="40%">ID :</th>
+                                    <td>#{{ don.id }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Description :</th>
+                                    <td>{{ don.articleDescription }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Catégorie :</th>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ don.categorie.couleur|default('#3498db') }}20; color: {{ don.categorie.couleur|default('#3498db') }};">
+                                            <i class="fas {{ don.categorie.icone|default('fa-box') }} me-1"></i>
+                                            {{ don.categorie.nom }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Quantité :</th>
+                                    <td>{{ don.quantite }} {{ don.unite }}</td>
+                                </tr>
+                                <tr>
+                                    <th>État :</th>
+                                    <td>{{ don.etat }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless">
+                                <tr>
+                                    <th width="40%">Urgence :</th>
+                                    <td>
+                                        {% if don.niveauUrgence == 'Élevé' %}
+                                            <span class="badge bg-danger">{{ don.niveauUrgence }}</span>
+                                        {% elseif don.niveauUrgence == 'Moyen' %}
+                                            <span class="badge bg-warning">{{ don.niveauUrgence }}</span>
+                                        {% else %}
+                                            <span class="badge bg-success">{{ don.niveauUrgence }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Statut :</th>
+                                    <td>
+                                        <span class="badge bg-{{ don.couleurStatut }}">
+                                            {{ don.statutLabel }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Soumis le :</th>
+                                    <td>{{ don.dateSoumission|date('d/m/Y à H:i') }}</td>
+                                </tr>
+                                {% if don.dateExpiration %}
+                                    <tr>
+                                        <th>Expiration :</th>
+                                        <td>{{ don.dateExpiration|date('d/m/Y') }}</td>
+                                    </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if don.detailsSupplementaires %}
+                        <div class="mt-4">
+                            <h6 class="text-muted mb-2">Détails supplémentaires</h6>
+                            <div class="p-3 bg-light rounded">
+                                {{ don.detailsSupplementaires|nl2br }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Vérification du texte (orthographe, grammaire, mots inappropriés) -->
+                    <div class="mt-4 pt-4 border-top">
+                        <h6 class="text-primary mb-2">
+                            <i class="fas fa-spell-check me-2"></i> Vérifier le texte
+                        </h6>
+                        <p class="small text-muted mb-2">Détecte les fautes, expressions à corriger (ex. « chaise nouveau » → « une nouvelle chaise ») et mots inappropriés. Les corrections ne sont appliquées qu’après votre confirmation.</p>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="btn-check-text" data-url="{{ path('admin_don_text_suggestions', { id: don.id }) }}">
+                            <i class="fas fa-search me-1"></i> Vérifier orthographe et contenu
+                        </button>
+                        <div id="text-check-result" class="mt-3" style="display: none;">
+                            <div id="text-check-loading" class="small text-muted mb-2" style="display: none;">
+                                <i class="fas fa-spinner fa-spin me-1"></i> Analyse en cours…
+                            </div>
+                            <div id="text-check-content"></div>
+                            <form id="form-apply-correction" action="{{ path('admin_don_apply_correction', { id: don.id }) }}" method="post" class="mt-3 p-2 bg-white border rounded" style="display: none;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('apply_correction' ~ don.id) }}">
+                                <input type="hidden" name="article_description" id="input-article-description">
+                                <input type="hidden" name="details_supplementaires" id="input-details-supplementaires">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check me-1"></i> Appliquer la correction
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="col-lg-4">
+            <!-- Actions selon le statut -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-cogs me-2"></i> Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if don.estEnAttente %}
+                        <div class="d-grid gap-2 mb-3">
+                            <form action="{{ path('admin_don_analyser', {'id': don.id}) }}" method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('analyser' ~ don.id) }}">
+                                <button type="submit" class="btn btn-outline-primary btn-lg w-100">
+                                    <i class="fas fa-robot me-2"></i> Analyse automatique & décision
+                                </button>
+                            </form>
+                            <form action="{{ path('admin_don_valider', {'id': don.id}) }}" method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('valider' ~ don.id) }}">
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-check-circle me-2"></i> Valider ce don
+                                </button>
+                            </form>
+                            <form action="{{ path('admin_don_rejeter', {'id': don.id}) }}" method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('rejeter' ~ don.id) }}">
+                                <button type="submit" class="btn btn-danger btn-lg w-100">
+                                    <i class="fas fa-times-circle me-2"></i> Rejeter ce don
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+
+                    <!-- Actions générales -->
+                    <div class="list-group">
+                        <a href="{{ path('admin_don_edit', {'id': don.id}) }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-edit me-2"></i> Modifier ce don
+                        </a>
+                        <form action="{{ path('admin_don_delete', {'id': don.id}) }}" method="post" onsubmit="return confirm('Supprimer définitivement ce don ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ don.id) }}">
+                            <button type="submit" class="list-group-item list-group-item-action text-danger">
+                                <i class="fas fa-trash me-2"></i> Supprimer ce don
+                            </button>
+                        </form>
+                        <a href="{{ path('admin_don_index') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-list me-2"></i> Retour à la liste
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations techniques -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-database me-2"></i> Informations techniques
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="small text-muted">
+                        <div class="mb-2">
+                            <strong>ID :</strong> {{ don.id }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Créé le :</strong> {{ don.dateSoumission|date('d/m/Y H:i:s') }}
+                        </div>
+                        <div class="mb-2">
+                            <strong>Dernière modification :</strong> {{ don.dateSoumission|date('d/m/Y H:i:s') }}
+                        </div>
+                        {% if don.scoreAuto is not null %}
+                            <hr>
+                            <div class="mb-1">
+                                <strong>Score auto :</strong> {{ don.scoreAuto }}/100
+                            </div>
+                            <div>
+                                <strong>Décision auto :</strong>
+                                {% if don.decisionAuto == 'valider' %}
+                                    Valider
+                                {% elseif don.decisionAuto == 'rejeter' %}
+                                    Rejeter
+                                {% elseif don.decisionAuto == 'review' %}
+                                    Revue manuelle
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset('js/admin-don-show.js') }}"></script>
+{% endblock %}

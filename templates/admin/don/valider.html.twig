@@ -1,0 +1,109 @@
+{# templates/admin/don/valider.html.twig #}
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Valider un don - MediLink{% endblock %}
+{% block page_title %}Dons{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="fas fa-check-circle"></i> Valider un don
+        </h1>
+        <a href="{{ path('admin_don_index', {'statut': 'en_attente'}) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+    
+    <!-- Informations du don -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Détails du don #{{ don.id }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Article:</strong><br>{{ don.articleDescription }}</p>
+                            <p><strong>Catégorie:</strong><br>
+                                <span class="badge" style="background-color: {{ don.categorie.couleur|default('#3498db') }};">
+                                    {{ don.categorie.nom }}
+                                </span>
+                            </p>
+                            <p><strong>Quantité:</strong><br>{{ don.quantite }} {{ don.unite }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>État:</strong><br>{{ don.etat }}</p>
+                            <p><strong>Urgence:</strong><br>{{ don.niveauUrgence }}</p>
+                            <p><strong>Soumis le:</strong><br>{{ don.dateSoumission|date('d/m/Y H:i') }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if don.detailsSupplementaires %}
+                        <div class="mt-3">
+                            <strong>Détails supplémentaires:</strong>
+                            <p class="mb-0">{{ don.detailsSupplementaires }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if don.nomDonateur %}
+                        <div class="mt-3">
+                            <strong>Donateur:</strong>
+                            <p class="mb-0">
+                                {{ don.nomDonateur }}
+                                {% if don.emailDonateur %}
+                                    <br><small class="text-muted">{{ don.emailDonateur }}</small>
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Validation -->
+            <div class="card shadow mb-4 border-left-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check"></i> Valider le don</h5>
+                </div>
+                <div class="card-body">
+                    <p>En validant ce don, il sera:</p>
+                    <ul>
+                        <li>Visible sur le site public</li>
+                        <li>Ajouté à la liste des dons disponibles</li>
+                        <li>Marqué comme "Validé" dans le système</li>
+                    </ul>
+                    <form action="{{ path('admin_don_valider', {'id': don.id}) }}" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('valider' ~ don.id) }}">
+                        <button type="submit" class="btn btn-success w-100" onclick="return confirm('Êtes-vous sûr de vouloir valider ce don ?')">
+                            <i class="fas fa-check-circle"></i> Valider le don
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Rejet -->
+            <div class="card shadow border-left-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-times"></i> Rejeter le don</h5>
+                </div>
+                <div class="card-body">
+                    <p>Si le don ne respecte pas les critères:</p>
+                    <form action="{{ path('admin_don_rejeter', {'id': don.id}) }}" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('rejeter' ~ don.id) }}">
+                        <div class="mb-3">
+                            <label for="raison_rejet" class="form-label">Raison du rejet:</label>
+                            <textarea class="form-control" id="raison_rejet" name="raison_rejet" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Êtes-vous sûr de vouloir rejeter ce don ?')">
+                            <i class="fas fa-times-circle"></i> Rejeter le don
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

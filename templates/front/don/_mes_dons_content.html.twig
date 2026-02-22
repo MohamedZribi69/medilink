@@ -1,0 +1,108 @@
+{# Contenu rafraîchi par l'API (stats + liste) - style cartes comme Dons disponibles / Événements #}
+<div class="mes-dons-stats">
+    <div class="stat-card stat-total">
+        <div class="stat-number">{{ dons|length }}</div>
+        <div class="stat-label">Total dons</div>
+    </div>
+    <div class="stat-card stat-attente">
+        <div class="stat-number">{{ dons|filter(d => d.estEnAttente)|length }}</div>
+        <div class="stat-label">En attente</div>
+    </div>
+    <div class="stat-card stat-valides">
+        <div class="stat-number">{{ dons|filter(d => d.estValide)|length }}</div>
+        <div class="stat-label">Validés</div>
+    </div>
+    <div class="stat-card stat-rejetes">
+        <div class="stat-number">{{ dons|filter(d => d.estRejete or d.estAnnule)|length }}</div>
+        <div class="stat-label">Rejetés / annulés</div>
+    </div>
+</div>
+
+{% if dons is empty %}
+    <div class="mes-dons-empty">
+        <i class="fas fa-inbox"></i>
+        <h3 style="font-size: 1.25rem; margin-bottom: 8px;">Vous n'avez soumis aucun don</h3>
+        <p>Les dons que vous soumettez apparaîtront ici avec leur statut.</p>
+        <a href="{{ path('front_don_nouveau') }}" class="btn-primary">
+            <i class="fas fa-plus-circle"></i> Soumettre mon premier don
+        </a>
+    </div>
+{% else %}
+    <div class="mes-dons-cards">
+        {% for don in dons %}
+            <article class="mes-dons-card">
+                <div class="mes-dons-card-header" style="background: linear-gradient(135deg, {{ don.categorie.couleur|default('#1a73e8') }}, {{ don.categorie.couleur|default('#0d62d9') }});">
+                    <h3 class="mes-dons-card-title">
+                        <i class="fas {{ don.categorie.icone|default('fa-box') }}"></i>
+                        {{ don.categorie.nom }}
+                        <span class="mes-dons-card-id">#{{ don.id }}</span>
+                    </h3>
+                    <span class="mes-dons-card-badge">{{ don.statutLabel }}</span>
+                </div>
+                <div class="mes-dons-card-body">
+                    <div class="mes-dons-card-desc">{{ don.articleDescription }}</div>
+                    {% if don.detailsSupplementaires %}
+                        <p class="mes-dons-card-details">{{ don.detailsSupplementaires|slice(0, 120) }}{% if don.detailsSupplementaires|length > 120 %}…{% endif %}</p>
+                    {% endif %}
+                    <div class="mes-dons-card-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Quantité</span>
+                            <span class="meta-value">{{ don.quantite }} {{ don.unite }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">État</span>
+                            <span class="meta-value">{{ don.etat }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Urgence</span>
+                            <span class="meta-value">
+                                {% if don.niveauUrgence == 'Élevé' %}<span class="badge badge-error">{{ don.niveauUrgence }}</span>
+                                {% elseif don.niveauUrgence == 'Moyen' %}<span class="badge badge-warning">{{ don.niveauUrgence }}</span>
+                                {% else %}<span class="badge badge-success">{{ don.niveauUrgence }}</span>{% endif %}
+                            </span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Soumis le</span>
+                            <span class="meta-value">{{ don.dateSoumission|date('d/m/Y') }}</span>
+                        </div>
+                    </div>
+                    <div class="mes-dons-card-actions">
+                        <a href="{{ path('front_don_edit', {'id': don.id}) }}" class="btn-edit">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        {% if don.estEnAttente %}
+                            <form action="{{ path('front_don_cancel', {'id': don.id}) }}" method="post" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ don.id) }}">
+                                <button type="submit" class="btn-cancel" onclick="return confirm('Annuler ce don ?');">
+                                    <i class="fas fa-ban"></i> Annuler
+                                </button>
+                            </form>
+                        {% endif %}
+                        <form action="{{ path('front_don_delete', {'id': don.id}) }}" method="post" style="display: inline;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ don.id) }}">
+                            <button type="submit" class="btn-delete" onclick="return confirm('Supprimer définitivement ce don ?');">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </form>
+                    </div>
+                    {% if don.estValide %}
+                        <div class="mes-dons-card-status status-success">
+                            <i class="fas fa-check-circle"></i> Ce don a été validé et est visible sur le site.
+                        </div>
+                    {% elseif don.estRejete %}
+                        <div class="mes-dons-card-status status-danger">
+                            <i class="fas fa-times-circle"></i> Ce don a été rejeté par l'administration.
+                        </div>
+                    {% elseif don.estAnnule %}
+                        <div class="mes-dons-card-status status-secondary">
+                            <i class="fas fa-ban"></i> Vous avez annulé ce don. Il ne sera pas traité.
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mes-dons-card-footer">
+                    ID: #{{ don.id }} • Soumis le {{ don.dateSoumission|date('d/m/Y à H:i') }}{% if don.dateExpiration %} • Expire le {{ don.dateExpiration|date('d/m/Y') }}{% endif %}
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+{% endif %}
