@@ -1,0 +1,67 @@
+{% extends 'medecin/base.html.twig' %}
+
+{% block title %}Mes ordonnances - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-file-prescription"></i> Mes ordonnances</h2>
+    <p>Créer, modifier et supprimer vos ordonnances.</p>
+  </div>
+
+  <p style="margin-bottom: 16px;">
+    <a href="{{ path('medecin_ordonnances_new') }}" class="btn-primary">
+      <i class="fa-solid fa-plus"></i> Nouvelle ordonnance
+    </a>
+    <a href="{{ path('medecin_medicaments_index') }}" class="btn-secondary" style="margin-left: 8px;">
+      <i class="fa-solid fa-pills"></i> Voir les médicaments
+    </a>
+  </p>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Patient</th>
+          <th>Médicaments</th>
+          <th style="width: 180px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in ordonnances %}
+          <tr>
+            <td>{{ o.dateCreation|date('d/m/Y H:i') }}</td>
+            <td>{{ o.patient ? o.patient.fullName : '-' }}</td>
+            <td>
+              {% for om in o.ordonnanceMedicaments %}
+                {{ om.medicament.nom }} (x{{ om.quantite }}){% if not loop.last %}, {% endif %}
+              {% else %}
+                -
+              {% endfor %}
+            </td>
+            <td>
+              <a class="icon-btn" title="Voir" href="{{ path('medecin_ordonnances_show', { id: o.id }) }}">
+                <i class="fa-solid fa-eye"></i>
+              </a>
+              <a class="icon-btn" title="Modifier" href="{{ path('medecin_ordonnances_edit', { id: o.id }) }}">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </a>
+              <form method="post" action="{{ path('medecin_ordonnances_delete', { id: o.id }) }}" style="display:inline" onsubmit="return confirm('Supprimer cette ordonnance ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_ordonnance_' ~ o.id) }}">
+                <button class="icon-btn" title="Supprimer" type="submit">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="4">Aucune ordonnance.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
