@@ -13,128 +13,138 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <!-- Google Fonts -->
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <!-- CSS Admin -->
-        <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+        <!-- CSS Admin (URL absolue + version pour forcer le rechargement) -->
+        <link rel="stylesheet" href="{{ app.request.schemeAndHttpHost }}{{ asset('css/admin.css') }}?v=1">
         {% block styles %}{% endblock %}
     {% endblock %}
 </head>
 <body>
-    <div class="admin-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <!-- Logo -->
-            <div class="sidebar-header">
-                <div class="logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div>
-                        <div class="logo-text">MediLink</div>
-                        <div class="logo-subtext">Administration</div>
+    <div class="admin-wrapper">
+        <div class="admin-container">
+            <!-- Sidebar (logo en haut + navigation) -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-logo">
+                        <div class="sidebar-logo-icon">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <div class="sidebar-logo-text">
+                            <span class="sidebar-logo-name">MediLink</span>
+                            <span class="sidebar-logo-sub">ADMINISTRATION</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Navigation -->
-            <div class="nav-section">
-                <div class="nav-section-title">Tableau de bord</div>
-                <a href="{{ path('admin_dashboard') }}" class="nav-item {{ app.request.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Vue d'ensemble</span>
-                </a>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Gestion des dons</div>
-                <a href="{{ path('admin_don_index', {'statut': 'en_attente'}) }}" 
-                   class="nav-item {{ app.request.get('_route') == 'admin_don_index' and app.request.query.get('statut') == 'en_attente' ? 'active' : '' }}">
-                    <i class="fas fa-clock"></i>
-                    <span>En attente</span>
-                    {% if stats is defined and stats.en_attente > 0 %}
-                        <span class="badge bg-warning">{{ stats.en_attente }}</span>
-                    {% endif %}
-                </a>
-                <a href="{{ path('admin_don_index', {'statut': 'valide'}) }}" 
-                   class="nav-item {{ app.request.get('_route') == 'admin_don_index' and app.request.query.get('statut') == 'valide' ? 'active' : '' }}">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Validés</span>
-                </a>
-                <a href="{{ path('admin_don_index', {'statut': 'rejete'}) }}" 
-                   class="nav-item {{ app.request.get('_route') == 'admin_don_index' and app.request.query.get('statut') == 'rejete' ? 'active' : '' }}">
-                    <i class="fas fa-times-circle"></i>
-                    <span>Rejetés</span>
-                </a>
-                <a href="{{ path('admin_don_index', {'statut': 'tous'}) }}" 
-                   class="nav-item {{ app.request.get('_route') == 'admin_don_index' and app.request.query.get('statut') == 'tous' ? 'active' : '' }}">
-                    <i class="fas fa-list"></i>
-                    <span>Tous les dons</span>
-                </a>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Site public</div>
-                {# mode=public pour voir le site SANS interface donateur #}
-                <a href="{{ path('front_home', {'mode': 'public'}) }}" class="nav-item" target="_blank">
-                    <i class="fas fa-external-link-alt"></i>
-                    <span>Voir le site</span>
-                </a>
-            </div>
-
-            <!-- Footer -->
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <div class="user-details">
-                        <div class="user-name">Administrateur</div>
-                        <div class="user-role">Panel de gestion</div>
-                    </div>
-                    <a href="{{ path('front_home', {'mode': 'public'}) }}" class="btn-icon" title="Retour au site">
-                        <i class="fas fa-sign-out-alt"></i>
+                <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Tableau de bord</div>
+                    <a href="{{ path('admin_dashboard') }}" class="nav-item {{ app.request.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Vue d'ensemble</span>
                     </a>
                 </div>
-            </div>
-        </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- En-tête -->
-            <div class="main-header">
-                <div class="header-info">
-                    <h1 class="h4 mb-0">
-                        {% block page_title %}{% endblock %}
-                    </h1>
-                    <div class="text-muted small">
-                        <i class="fas fa-calendar me-1"></i>
-                        {{ "now"|date("d/m/Y") }} • {{ "now"|date("H:i") }}
-                    </div>
-                </div>
-                <div class="header-actions">
-                    <a href="{{ path('front_home', {'mode': 'public'}) }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-external-link-alt me-1"></i> Voir le site
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestion médicale</div>
+                    <a href="{{ path('admin_don_index', {'statut': 'en_attente'}) }}" class="nav-item {{ (app.request.get('_route')|default('')) starts with 'admin_don_' ? 'active' : '' }}">
+                        <i class="fas fa-hand-holding-medical"></i>
+                        <span>Dons</span>
+                        {% if stats is defined and stats.en_attente is defined and stats.en_attente > 0 %}
+                            <span class="nav-badge">{{ stats.en_attente }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ path('admin_medicaments_index') }}" class="nav-item {{ (app.request.get('_route')|default('')) starts with 'admin_medicaments' ? 'active' : '' }}">
+                        <i class="fas fa-pills"></i>
+                        <span>Médicaments</span>
+                    </a>
+                    <a href="{{ path('admin_ordonnances_index') }}" class="nav-item {{ (app.request.get('_route')|default('')) starts with 'admin_ordonnances' ? 'active' : '' }}">
+                        <i class="fas fa-file-prescription"></i>
+                        <span>Ordonnances</span>
+                    </a>
+                    <a href="{{ path('admin_rendezvous_index') }}" class="nav-item {{ (app.request.get('_route')|default('')) starts with 'admin_rendezvous' ? 'active' : '' }}">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Rendez-vous</span>
+                    </a>
+                    <a href="{{ path('admin_disponibilites_index') }}" class="nav-item {{ (app.request.get('_route')|default('')) starts with 'admin_disponibilites' ? 'active' : '' }}">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Disponibilités</span>
+                    </a>
+                    <a href="{{ path('admin_events_index') }}" class="nav-item {{ (app.request.get('_route')|default('')) starts with 'admin_events' ? 'active' : '' }}">
+                        <i class="fas fa-calendar-day"></i>
+                        <span>Événements</span>
                     </a>
                 </div>
-            </div>
 
-            <!-- Messages flash -->
-            {% for message in app.flashes('success') %}
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="nav-section">
+                    <div class="nav-section-title">Configuration</div>
+                    <a href="{{ path('admin_users_index') }}" class="nav-item {{ (app.request.get('_route')|default('')) starts with 'admin_users' ? 'active' : '' }}">
+                        <i class="fas fa-users"></i>
+                        <span>Utilisateurs</span>
+                    </a>
                 </div>
-            {% endfor %}
-            
-            {% for message in app.flashes('error') %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
 
-            <!-- Contenu principal -->
-            {% block body %}{% endblock %}
-        </main>
+                <div class="nav-section nav-section-bottom">
+                    <a href="{{ path('front_home', {'mode': 'public'}) }}" class="nav-item" target="_blank">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span>Voir le site</span>
+                    </a>
+                </div>
+
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name">Administrateur</div>
+                            <div class="user-role">Panel de gestion</div>
+                        </div>
+                        <a href="{{ path('front_home', {'mode': 'public'}) }}" class="btn-icon" title="Retour au site">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <a href="{{ path('app_logout') }}" class="btn-icon" title="Déconnexion">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="content-topbar">
+                    <div class="content-topbar-left">
+                        <h1 class="content-page-title">{% block page_title %}{% endblock %}</h1>
+                        <div class="content-page-date">{{ "now"|date("d/m/Y") }} - {{ "now"|date("H:i:s") }}</div>
+                    </div>
+                    <div class="content-topbar-actions">
+                        <button type="button" class="content-topbar-icon" title="Actualiser" onclick="location.reload()">
+                            <i class="fas fa-rotate-right"></i>
+                        </button>
+                        <button type="button" class="content-topbar-icon topbar-menu-toggle" title="Menu">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages flash -->
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+                        <i class="fas fa-check-circle me-2"></i> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+                {% for message in app.flashes('error') %}
+                    <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+
+                <div class="content-body">
+                    {% block body %}{% endblock %}
+                </div>
+            </main>
+        </div>
     </div>
 
     {% block javascripts %}
