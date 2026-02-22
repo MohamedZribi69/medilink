@@ -1,0 +1,66 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}MediLink - Médicaments{% endblock %}
+{% block page_title %}Médicaments{% endblock %}
+
+{% block body %}
+<div class="admin-page-card">
+  <div class="admin-card-header">
+    <div class="admin-card-title">
+      <i class="fas fa-pills"></i>
+      <span>Gestion des médicaments</span>
+    </div>
+    <p class="admin-card-desc">Ajouter, modifier et supprimer les médicaments.</p>
+  </div>
+
+  <form class="admin-toolbar" method="get" action="{{ path('admin_medicaments_index') }}">
+    <div class="admin-search">
+      <i class="fas fa-search"></i>
+      <input name="q" value="{{ q|default('') }}" type="text" placeholder="Rechercher par nom ou description..." />
+    </div>
+    <a class="btn btn-admin-secondary" href="{{ path('admin_medicaments_index') }}">
+      <i class="fas fa-rotate-left me-1"></i> Reset
+    </a>
+    <a href="{{ path('admin_medicaments_new') }}" class="btn btn-admin-primary">
+      <i class="fas fa-plus me-1"></i> Ajouter un médicament
+    </a>
+  </form>
+
+  <div class="admin-table-wrap">
+    <table class="table table-admin">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Description</th>
+          <th>Quantité stock</th>
+          <th class="text-end" style="width: 140px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in medicaments %}
+          <tr>
+            <td><strong>{{ m.nom }}</strong></td>
+            <td>{{ (m.description|default('-'))|length > 80 ? (m.description|default('-'))|slice(0, 80) ~ '...' : (m.description|default('-')) }}</td>
+            <td>{{ m.quantiteStock }}</td>
+            <td class="text-end">
+              <a class="btn btn-admin-icon" title="Modifier" href="{{ path('admin_medicaments_edit', { id: m.id }) }}">
+                <i class="fas fa-pen-to-square"></i>
+              </a>
+              <form method="post" action="{{ path('admin_medicaments_delete', { id: m.id }) }}" class="d-inline" onsubmit="return confirm('Supprimer ce médicament ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_medicament_' ~ m.id) }}">
+                <button class="btn btn-admin-icon btn-admin-icon-danger" title="Supprimer" type="submit">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">Aucun médicament.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

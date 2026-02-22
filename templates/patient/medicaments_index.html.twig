@@ -1,0 +1,37 @@
+{% extends 'event/base.html.twig' %}
+
+{% block title %}Médicaments - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-pills"></i> Médicaments</h2>
+    <p>Sélectionnez un médicament pour voir si une ordonnance existe pour vous.</p>
+  </div>
+
+  {% if medicaments is empty %}
+    <div class="event-empty">
+      <i class="fa-solid fa-pills"></i>
+      Aucun médicament disponible.
+    </div>
+  {% else %}
+    <div class="creneaux-grid">
+      {% for m in medicaments %}
+        <div class="creneau-card">
+          <div class="creneau-medecin">
+            <i class="fa-solid fa-capsules"></i>
+            <strong>{{ m.nom }}</strong>
+          </div>
+          {% if m.description %}
+            <p style="margin: 8px 0; font-size: 0.9rem; color: #555;">{{ m.description|length > 120 ? m.description|slice(0, 120) ~ '...' : m.description }}</p>
+          {% endif %}
+          <p class="hint">Stock : {{ m.quantiteStock }}</p>
+          <a href="{{ path('patient_medicament_show', { id: m.id }) }}" class="btn-reserver" style="margin-top: 12px; display: inline-block; text-decoration: none;">
+            <i class="fa-solid fa-eye"></i> Voir / Ordonnance
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

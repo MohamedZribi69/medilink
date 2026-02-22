@@ -1,0 +1,150 @@
+{% extends 'event/base.html.twig' %}
+
+{% block title %}Prendre rendez-vous - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-calendar-check"></i> Prendre rendez-vous</h2>
+    <p>Choisissez une disponibilité chez un médecin et réservez votre rendez-vous.</p>
+  </div>
+
+  <h3 style="margin: 24px 0 16px; color: var(--primary-color);"><i class="fa-solid fa-clock"></i> Disponibilités</h3>
+
+  {% if disponibilites is empty %}
+    <div class="event-empty">
+      <i class="fa-solid fa-calendar-xmark"></i>
+      Aucune disponibilité pour le moment. Revenez plus tard ou contactez un médecin.
+    </div>
+  {% else %}
+    <div class="creneaux-grid">
+      {% for d in disponibilites %}
+        <div class="creneau-card">
+          <div class="creneau-medecin">
+            <i class="fa-solid fa-user-doctor"></i>
+            <strong>{{ d.medecin.fullName }}</strong>
+          </div>
+          <div class="creneau-horaire">
+            <span>{{ d.date|date('d/m/Y') }}</span>
+            <span>{{ d.heureDebut|date('H:i') }} - {{ d.heureFin|date('H:i') }}</span>
+          </div>
+          <form method="post" action="{{ path('patient_rendezvous_reserver', { id: d.id }) }}" style="margin-top: 12px;">
+            <input type="hidden" name="_token" value="{{ csrf_token('reserver_' ~ d.id) }}">
+            <button type="submit" class="btn-reserver">
+              <i class="fa-solid fa-check"></i> Réserver cette disponibilité
+            </button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <h3 style="margin: 40px 0 16px; color: var(--primary-color);"><i class="fa-solid fa-list"></i> Mes rendez-vous</h3>
+
+  {% if mesRendezVous is empty %}
+    <p class="hint">Vous n'avez pas encore de rendez-vous.</p>
+  {% else %}
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Médecin</th>
+            <th>Date et heure</th>
+            <th>Statut</th>
+            <th>Calendrier</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in mesRendezVous %}
+            <tr>
+              <td>{{ r.disponibilite.medecin ? r.disponibilite.medecin.fullName : '-' }}</td>
+              <td>{{ r.dateHeure|date('d/m/Y H:i') }}</td>
+              <td>
+                <span class="badge badge-{{ r.statut == 'confirme' ? 'success' : (r.statut == 'annule' ? 'error' : '') }}">
+                  {{ statutsLabels[r.statut] ?? r.statut }}
+                </span>
+              </td>
+              <td>
+                {% if r.statut != 'annule' %}
+                  <a href="{{ path('calendar_rendezvous', { id: r.id }) }}" class="btn-calendar-link">
+                    <i class="fa-solid fa-calendar-plus"></i> Calendrier
+                  </a>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</section>
+
+<style>
+.creneaux-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+.creneau-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  border: 1px solid var(--medium-gray);
+}
+.creneau-medecin {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.creneau-medecin i {
+  color: var(--primary-color);
+  font-size: 1.2rem;
+}
+.creneau-horaire {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--dark-gray);
+}
+.btn-reserver {
+  width: 100%;
+  padding: 12px;
+  background: var(--secondary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+.btn-reserver:hover {
+  background: #0a6b5a;
+}
+.btn-calendar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--light-blue);
+  color: var(--primary-color);
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid var(--primary-color);
+  transition: background 0.2s;
+}
+.btn-calendar-link:hover {
+  background: var(--primary-color);
+  color: var(--white);
+}
+</style>
+{% endblock %}
