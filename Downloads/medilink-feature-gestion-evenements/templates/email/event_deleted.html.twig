@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Événement annulé</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.5; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #1a73e8; color: #fff; padding: 16px 20px; border-radius: 8px 8px 0 0; }
+        .content { background: #f8f9fa; padding: 20px; border: 1px solid #dee2e6; border-top: none; border-radius: 0 0 8px 8px; }
+        .event-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 8px; }
+        .footer { margin-top: 20px; font-size: 0.9rem; color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <strong>MediLink</strong> — Événement annulé
+    </div>
+    <div class="content">
+        <p>Bonjour,</p>
+        <p>L'événement auquel vous étiez inscrit(e) a été <strong>supprimé</strong> par l'équipe MediLink.</p>
+        <div class="event-title">{{ evenement.titre }}</div>
+        <p>
+            <strong>Date prévue :</strong> {{ evenement.dateEvenement ? evenement.dateEvenement|date('d/m/Y') : '—' }}<br>
+            <strong>Lieu :</strong> {{ evenement.lieu ?? '—' }}<br>
+            <strong>Type :</strong> {{ evenement.type ?? '—' }}
+        </p>
+        <p>Nous vous invitons à consulter les autres événements disponibles sur la plateforme.</p>
+        <p class="footer">Cet e-mail a été envoyé automatiquement. Merci de ne pas y répondre.</p>
+    </div>
+</body>
+</html>

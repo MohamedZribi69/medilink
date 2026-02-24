@@ -1,0 +1,235 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Ajouter un événement - MediLink{% endblock %}
+{% block page_title %}Gestion des événements{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map-new {
+      height: 280px;
+      border-radius: 12px;
+      border: 2px solid #e0e0e0;
+      margin-top: 10px;
+      z-index: 1;
+    }
+    .map-search-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+    .map-search-input {
+      flex: 1;
+      padding: 7px 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      outline: none;
+    }
+    .map-search-input:focus { border-color: #e53935; }
+    .map-btn {
+      padding: 7px 13px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 500;
+      transition: opacity .2s;
+    }
+    .map-btn:hover { opacity: 0.85; }
+    .map-btn-search { background: #e53935; color: #fff; }
+    .map-btn-locate { background: #1976D2; color: #fff; }
+    .map-hint { font-size: 0.8rem; color: #888; margin-top: 5px; }
+  </style>
+{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <p class="mb-0 text-secondary">Créer un nouvel événement.</p>
+  </div>
+
+  <div class="table-container" style="max-width: 600px;">
+    {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+    <div style="padding: 20px;">
+      <div class="form-group">
+        <label for="{{ form.titre.vars.id }}">Titre</label>
+        {{ form_widget(form.titre, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.titre) }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.description.vars.id }}">Description</label>
+        <button type="button" class="js-generate-event-description" style="margin-left: 10px; font-size: 0.9rem; background: #e53935; color: #fff; border: none; border-radius: 50px; padding: 6px 14px; cursor: pointer;">
+          <i class="fas fa-magic me-1"></i> Générer avec l'IA
+        </button>
+        {{ form_widget(form.description, { attr: { class: 'input' } }) }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.dateEvenement.vars.id }}">Date de l'événement</label>
+        {{ form_widget(form.dateEvenement, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.dateEvenement) }}
+        <p class="hint">Format : JJ/MM/AAAA (sélecteur de date)</p>
+      </div>
+
+      {# ── Champ Lieu + carte Leaflet ── #}
+      <div class="form-group">
+        <label for="{{ form.lieu.vars.id }}">
+          <i class="fas fa-map-marker-alt me-1" style="color:#e53935;"></i> Lieu
+        </label>
+        {{ form_widget(form.lieu, { attr: { class: 'input', placeholder: 'Ex : Tunis, Salle des conférences' } }) }}
+        {{ form_errors(form.lieu) }}
+
+        <div class="map-search-row">
+          <input type="text" id="map-search-new" class="map-search-input" placeholder="Rechercher une adresse sur la carte…" autocomplete="off">
+          <button type="button" class="map-btn map-btn-search" id="map-search-btn-new">
+            <i class="fas fa-search"></i> Chercher
+          </button>
+          <button type="button" class="map-btn map-btn-locate" id="map-locate-btn-new">
+            <i class="fas fa-crosshairs"></i> Ma position
+          </button>
+        </div>
+
+        <div id="map-new"></div>
+        <p class="map-hint"><i class="fas fa-info-circle"></i> Cliquez sur la carte pour choisir un lieu — l'adresse se remplit automatiquement.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.type.vars.id }}">Type d'événement</label>
+        {{ form_widget(form.type, { attr: { class: 'input', placeholder: 'Ex : Conférence, Atelier, Webinaire' } }) }}
+        {{ form_errors(form.type) }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.photoFile.vars.id }}">Photo de l'événement</label>
+        {{ form_widget(form.photoFile, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.photoFile) }}
+        <p class="hint">JPEG, PNG, GIF ou WebP. Max 5 Mo. Optionnel.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 20px;">
+        <div style="display: flex; gap: 12px;">
+          <a href="{{ path('admin_events_index') }}" class="btn-secondary">Annuler</a>
+          <button type="submit" class="btn-primary">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+    {{ form_end(form) }}
+  </div>
+</section>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  var DEFAULT_LAT = 36.8065, DEFAULT_LNG = 10.1815; // Tunis par défaut
+  var map = L.map('map-new').setView([DEFAULT_LAT, DEFAULT_LNG], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+    maxZoom: 19
+  }).addTo(map);
+
+  var marker = L.marker([DEFAULT_LAT, DEFAULT_LNG], { draggable: true }).addTo(map);
+  var lieuInput = document.getElementById('{{ form.lieu.vars.id }}');
+
+  // Reverse geocoding : coordonnées → adresse (Nominatim)
+  function reverseGeocode(lat, lng) {
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=fr', {
+      headers: { 'Accept-Language': 'fr' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.display_name) {
+        lieuInput.value = data.display_name;
+      }
+    })
+    .catch(function() {});
+  }
+
+  // Geocoding : adresse → coordonnées (Nominatim)
+  function geocode(query, callback) {
+    fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1&accept-language=fr')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.length > 0) {
+        callback(parseFloat(data[0].lat), parseFloat(data[0].lon), data[0].display_name);
+      } else {
+        alert('Adresse introuvable. Essayez une recherche plus précise.');
+      }
+    })
+    .catch(function() { alert('Erreur de géocodage.'); });
+  }
+
+  function setMarker(lat, lng) {
+    marker.setLatLng([lat, lng]);
+    map.setView([lat, lng], 15);
+    reverseGeocode(lat, lng);
+  }
+
+  // Clic sur la carte
+  map.on('click', function(e) { setMarker(e.latlng.lat, e.latlng.lng); });
+
+  // Déplacement du marqueur (drag)
+  marker.on('dragend', function(e) {
+    var pos = e.target.getLatLng();
+    reverseGeocode(pos.lat, pos.lng);
+  });
+
+  // Bouton "Chercher"
+  document.getElementById('map-search-btn-new').addEventListener('click', function() {
+    var q = document.getElementById('map-search-new').value.trim();
+    if (!q) return;
+    geocode(q, function(lat, lng, name) {
+      marker.setLatLng([lat, lng]);
+      map.setView([lat, lng], 15);
+      lieuInput.value = name;
+    });
+  });
+
+  // Touche Entrée dans la barre de recherche
+  document.getElementById('map-search-new').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('map-search-btn-new').click(); }
+  });
+
+  // Bouton "Ma position"
+  document.getElementById('map-locate-btn-new').addEventListener('click', function() {
+    if (!navigator.geolocation) { alert('Géolocalisation non supportée par votre navigateur.'); return; }
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Localisation…';
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        setMarker(pos.coords.latitude, pos.coords.longitude);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-crosshairs"></i> Ma position';
+      },
+      function() {
+        alert('Impossible d\'obtenir votre position.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-crosshairs"></i> Ma position';
+      }
+    );
+  });
+
+  // Saisie manuelle dans le champ lieu → déplace la carte
+  var lieuTimer;
+  lieuInput.addEventListener('input', function() {
+    clearTimeout(lieuTimer);
+    var val = lieuInput.value.trim();
+    if (val.length < 5) return;
+    lieuTimer = setTimeout(function() {
+      geocode(val, function(lat, lng) {
+        marker.setLatLng([lat, lng]);
+        map.setView([lat, lng], 14);
+      });
+    }, 800);
+  });
+
+  // Forcer Leaflet à recalculer la taille (évite la carte grise)
+  setTimeout(function() { map.invalidateSize(); }, 200);
+})();
+</script>
+{% endblock %}

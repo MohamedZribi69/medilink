@@ -1,0 +1,43 @@
+{% extends 'medecin/base.html.twig' %}
+
+{% block title %}Médicaments - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-pills"></i> Catalogue des médicaments</h2>
+    <p>Liste des médicaments disponibles (consultation).</p>
+  </div>
+
+  <p style="margin-bottom: 16px;">
+    <a href="{{ path('medecin_ordonnances_index') }}" class="btn-secondary">
+      <i class="fa-solid fa-file-prescription"></i> Retour aux ordonnances
+    </a>
+  </p>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Description</th>
+          <th>Quantité en stock</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in medicaments %}
+          <tr>
+            <td><strong>{{ m.nom }}</strong></td>
+            <td>{{ m.description|default('-') }}</td>
+            <td>{{ m.quantiteStock }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="3">Aucun médicament.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

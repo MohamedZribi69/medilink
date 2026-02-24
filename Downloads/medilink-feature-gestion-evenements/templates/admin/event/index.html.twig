@@ -1,0 +1,102 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}MediLink - Gestion des événements{% endblock %}
+{% block page_title %}Gestion des événements{% endblock %}
+
+{% block body %}
+<div class="admin-page-events">
+  {# Cartes statistiques #}
+  <div class="stats-cards">
+    <div class="stat-card stat-card-yellow">
+      <div class="stat-card-icon"><i class="fas fa-calendar-plus"></i></div>
+      <span class="stat-card-badge">À venir</span>
+      <div class="stat-card-value">{{ stats.a_venir }}</div>
+      <div class="stat-card-label">À venir</div>
+    </div>
+    <div class="stat-card stat-card-green">
+      <div class="stat-card-icon"><i class="fas fa-check-circle"></i></div>
+      <span class="stat-card-badge">Total</span>
+      <div class="stat-card-value">{{ stats.total }}</div>
+      <div class="stat-card-label">Événements</div>
+    </div>
+    <div class="stat-card stat-card-red">
+      <div class="stat-card-icon"><i class="fas fa-user-clock"></i></div>
+      <span class="stat-card-badge">En attente</span>
+      <div class="stat-card-value">{{ stats.participations_attente }}</div>
+      <div class="stat-card-label">Participations</div>
+    </div>
+    <div class="stat-card stat-card-blue">
+      <div class="stat-card-icon"><i class="fas fa-layer-group"></i></div>
+      <span class="stat-card-badge">Total</span>
+      <div class="stat-card-value">{{ stats.total }}</div>
+      <div class="stat-card-label">Enregistrements</div>
+    </div>
+  </div>
+
+  {# Section Événements récents #}
+  <div class="admin-section-card">
+    <div class="admin-section-header">
+      <h2 class="admin-section-title"><i class="fas fa-calendar-days"></i> Événements</h2>
+      <div class="admin-section-actions">
+        <a href="{{ path('admin_events_index') }}" class="btn-admin btn-admin-outline" title="Actualiser">
+          <i class="fas fa-rotate-right"></i> Actualiser
+        </a>
+        <a href="{{ path('admin_events_new') }}" class="btn-admin btn-admin-primary">
+          <i class="fas fa-plus"></i> Nouvelle
+        </a>
+      </div>
+    </div>
+
+    {# Barre recherche + filtre #}
+    <form class="admin-toolbar-inline" method="get" action="{{ path('admin_events_index') }}">
+      <div class="searchbox-inline">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input name="q" value="{{ filters.q }}" type="text" placeholder="Rechercher par titre, lieu, type..." />
+      </div>
+      <div class="filters-inline">
+        <a class="btn-admin btn-admin-outline btn-sm" href="{{ path('admin_events_index', { q: filters.q, ordre: 'asc' }) }}">
+          <i class="fa-solid fa-filter"></i> Date croissant
+        </a>
+        <a class="btn-admin btn-admin-outline btn-sm" href="{{ path('admin_events_index', { q: filters.q }) }}">
+          <i class="fa-solid fa-rotate-left"></i> Reset
+        </a>
+      </div>
+    </form>
+
+    <div class="admin-list-cards">
+      {% for e in evenements %}
+        <div class="admin-event-card">
+          <div class="admin-event-card-main">
+            <div class="admin-event-card-title">{{ e.titre }}</div>
+            <div class="admin-event-card-meta">
+              <span><i class="fas fa-calendar"></i> {{ e.dateEvenement|date('d/m/Y') }}</span>
+              <span><i class="fas fa-location-dot"></i> {{ e.lieu }}</span>
+              <span><i class="fas fa-tag"></i> {{ e.type|default('—') }}</span>
+            </div>
+          </div>
+          <div class="admin-event-card-actions">
+            <a class="icon-btn" title="Participants" href="{{ path('admin_events_participants', { id: e.id }) }}">
+              <i class="fa-solid fa-users"></i>
+            </a>
+            <a class="icon-btn" title="Modifier" href="{{ path('admin_events_edit', { id: e.id }) }}">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </a>
+            <form method="post" action="{{ path('admin_events_delete', { id: e.id }) }}" style="display:inline" onsubmit="return confirm('Supprimer cet événement ?');">
+              <input type="hidden" name="_token" value="{{ csrf_token('delete_event_' ~ e.id) }}">
+              <button class="icon-btn icon-btn-danger" title="Supprimer" type="submit">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="admin-empty-state">
+          <i class="fas fa-calendar-xmark"></i>
+          <p>Aucun événement.</p>
+          <a href="{{ path('admin_events_new') }}" class="btn-admin btn-admin-primary"><i class="fas fa-plus"></i> Ajouter un événement</a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

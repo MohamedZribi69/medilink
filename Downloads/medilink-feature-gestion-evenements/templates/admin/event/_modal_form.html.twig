@@ -1,0 +1,224 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  #map-modal {
+    height: 240px;
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+    margin-top: 8px;
+    z-index: 1;
+  }
+  .map-search-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .map-search-input {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 10px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    outline: none;
+  }
+  .map-search-input:focus { border-color: #e53935; }
+  .map-btn {
+    padding: 6px 11px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    transition: opacity .2s;
+    white-space: nowrap;
+  }
+  .map-btn:hover { opacity: 0.85; }
+  .map-btn-search { background: #e53935; color: #fff; }
+  .map-btn-locate { background: #1976D2; color: #fff; }
+  .map-hint { font-size: 0.78rem; color: #888; margin-top: 5px; }
+</style>
+
+<div class="modal">
+  <div class="modal-header">
+    <h3 id="modalTitle"><i class="fa-solid fa-calendar-plus"></i> Ajouter un événement</h3>
+    <button class="icon-btn" type="button" data-close-modal aria-label="Fermer">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  {{ form_start(form, { attr: { id: 'eventModalForm', novalidate: 'novalidate', enctype: 'multipart/form-data' } }) }}
+  <div class="modal-body">
+    <div class="form-group">
+      <label for="{{ form.titre.vars.id }}"><i class="fa-solid fa-heading"></i> Titre</label>
+      {{ form_widget(form.titre, { attr: { class: 'input', placeholder: 'Ex: Journée santé' } }) }}
+      {{ form_errors(form.titre) }}
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.description.vars.id }}"><i class="fa-solid fa-align-left"></i> Description</label>
+      <button type="button" class="js-generate-event-description" style="margin-left: 8px; font-size: 0.9rem; background: #e53935; color: #fff; border: none; border-radius: 50px; padding: 6px 14px; cursor: pointer;">
+        <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Générer avec l'IA
+      </button>
+      {{ form_widget(form.description, { attr: { class: 'input' } }) }}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="{{ form.dateEvenement.vars.id }}"><i class="fa-solid fa-calendar"></i> Date</label>
+        {{ form_widget(form.dateEvenement, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.dateEvenement) }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.type.vars.id }}"><i class="fa-solid fa-tag"></i> Type</label>
+        {{ form_widget(form.type, { attr: { class: 'input', placeholder: 'Ex: Conférence' } }) }}
+        {{ form_errors(form.type) }}
+      </div>
+    </div>
+
+    {# ── Champ Lieu + carte Leaflet ── #}
+    <div class="form-group">
+      <label for="{{ form.lieu.vars.id }}">
+        <i class="fa-solid fa-location-dot" style="color:#e53935;"></i> Lieu
+      </label>
+      {{ form_widget(form.lieu, { attr: { class: 'input', placeholder: 'Ex: Salle A' } }) }}
+      {{ form_errors(form.lieu) }}
+
+      <div class="map-search-row">
+        <input type="text" id="map-search-modal" class="map-search-input" placeholder="Rechercher une adresse…" autocomplete="off">
+        <button type="button" class="map-btn map-btn-search" id="map-search-btn-modal">
+          <i class="fas fa-search"></i> Chercher
+        </button>
+        <button type="button" class="map-btn map-btn-locate" id="map-locate-btn-modal">
+          <i class="fas fa-crosshairs"></i> Ma position
+        </button>
+      </div>
+
+      <div id="map-modal"></div>
+      <p class="map-hint"><i class="fas fa-info-circle"></i> Cliquez sur la carte pour choisir un lieu.</p>
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.photoFile.vars.id }}"><i class="fa-solid fa-image"></i> Photo de l'événement</label>
+      {{ form_widget(form.photoFile, { attr: { class: 'input' } }) }}
+      {{ form_errors(form.photoFile) }}
+      <p class="hint">JPEG, PNG, GIF ou WebP. Max 5 Mo. Optionnel.</p>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <div class="modal-footer-buttons">
+      <button type="button" class="btn-secondary" data-close-modal><i class="fa-solid fa-ban"></i> Annuler</button>
+      <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
+    </div>
+  </div>
+  {{ form_end(form) }}
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  var DEFAULT_LAT = 36.8065, DEFAULT_LNG = 10.1815;
+  var mapModal = L.map('map-modal').setView([DEFAULT_LAT, DEFAULT_LNG], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+    maxZoom: 19
+  }).addTo(mapModal);
+
+  var markerModal = L.marker([DEFAULT_LAT, DEFAULT_LNG], { draggable: true }).addTo(mapModal);
+  var lieuInput = document.getElementById('{{ form.lieu.vars.id }}');
+
+  function reverseGeocode(lat, lng) {
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng, {
+      headers: { 'Accept-Language': 'fr' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) { if (data && data.display_name) lieuInput.value = data.display_name; })
+    .catch(function() {});
+  }
+
+  function geocode(query, callback) {
+    fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1', {
+      headers: { 'Accept-Language': 'fr' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.length > 0) callback(parseFloat(data[0].lat), parseFloat(data[0].lon), data[0].display_name);
+      else alert('Adresse introuvable.');
+    })
+    .catch(function() {});
+  }
+
+  mapModal.on('click', function(e) {
+    markerModal.setLatLng([e.latlng.lat, e.latlng.lng]);
+    mapModal.setView([e.latlng.lat, e.latlng.lng], 15);
+    reverseGeocode(e.latlng.lat, e.latlng.lng);
+  });
+
+  markerModal.on('dragend', function(e) {
+    var pos = e.target.getLatLng();
+    reverseGeocode(pos.lat, pos.lng);
+  });
+
+  document.getElementById('map-search-btn-modal').addEventListener('click', function() {
+    var q = document.getElementById('map-search-modal').value.trim();
+    if (!q) return;
+    geocode(q, function(lat, lng, name) {
+      markerModal.setLatLng([lat, lng]);
+      mapModal.setView([lat, lng], 15);
+      lieuInput.value = name;
+    });
+  });
+
+  document.getElementById('map-search-modal').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('map-search-btn-modal').click(); }
+  });
+
+  document.getElementById('map-locate-btn-modal').addEventListener('click', function() {
+    if (!navigator.geolocation) { alert('Géolocalisation non supportée.'); return; }
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        var lat = pos.coords.latitude, lng = pos.coords.longitude;
+        markerModal.setLatLng([lat, lng]);
+        mapModal.setView([lat, lng], 15);
+        reverseGeocode(lat, lng);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-crosshairs"></i> Ma position';
+      },
+      function() {
+        alert('Impossible d\'obtenir votre position.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-crosshairs"></i> Ma position';
+      }
+    );
+  });
+
+  var lieuTimer;
+  lieuInput.addEventListener('input', function() {
+    clearTimeout(lieuTimer);
+    var val = lieuInput.value.trim();
+    if (val.length < 5) return;
+    lieuTimer = setTimeout(function() {
+      geocode(val, function(lat, lng) {
+        markerModal.setLatLng([lat, lng]);
+        mapModal.setView([lat, lng], 14);
+      });
+    }, 800);
+  });
+
+  // Recalcul de la taille quand le modal devient visible
+  setTimeout(function() { mapModal.invalidateSize(); }, 300);
+  // Observer pour invalidateSize si le modal s'affiche après chargement
+  var observer = new MutationObserver(function() { mapModal.invalidateSize(); });
+  var modalEl = document.querySelector('.modal');
+  if (modalEl) observer.observe(modalEl, { attributes: true, attributeFilter: ['class', 'style'] });
+})();
+</script>

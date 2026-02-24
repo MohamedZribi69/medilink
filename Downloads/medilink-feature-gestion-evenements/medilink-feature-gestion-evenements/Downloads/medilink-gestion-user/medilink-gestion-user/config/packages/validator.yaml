@@ -1,0 +1,11 @@
+framework:
+    validation:
+        enable_attributes: true
+        mapping:
+            paths:
+                - '%kernel.project_dir%/config/validator/validation.yaml'
+
+when@test:
+    framework:
+        validation:
+            not_compromised_password: false

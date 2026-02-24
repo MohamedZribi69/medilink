@@ -1,0 +1,62 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Modifier l'événement{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-calendar-days"></i> Modifier l'événement</h2>
+    <p>{{ evenement.titre }}</p>
+  </div>
+
+  <div class="table-container" style="max-width: 600px;">
+    {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+    <div style="padding: 20px;">
+      <div class="form-group">
+        <label for="{{ form.titre.vars.id }}">Titre</label>
+        {{ form_widget(form.titre, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.titre) }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.description.vars.id }}">Description</label>
+        {{ form_widget(form.description, { attr: { class: 'input' } }) }}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.dateEvenement.vars.id }}">Date</label>
+          {{ form_widget(form.dateEvenement, { attr: { class: 'input' } }) }}
+          {{ form_errors(form.dateEvenement) }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.type.vars.id }}">Type</label>
+          {{ form_widget(form.type, { attr: { class: 'input' } }) }}
+          {{ form_errors(form.type) }}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="{{ form.lieu.vars.id }}">Lieu</label>
+        {{ form_widget(form.lieu, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.lieu) }}
+      </div>
+      <div class="form-group">
+        <label for="{{ form.photoFile.vars.id }}">Photo de l'événement</label>
+        {% if evenement.photo %}
+          <p class="hint" style="margin-bottom: 8px;">Photo actuelle :</p>
+          <img src="{{ '/uploads/events/' ~ evenement.photo }}" alt="" style="max-width: 200px; max-height: 150px; object-fit: cover; border-radius: 8px; display: block;" />
+        {% endif %}
+        {{ form_widget(form.photoFile, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.photoFile) }}
+        <p class="hint">Laisser vide pour conserver la photo actuelle. JPEG, PNG, GIF ou WebP. Max 5 Mo.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 20px;">
+        <div style="display: flex; gap: 12px;">
+          <a href="{{ path('admin_events_index') }}" class="btn-secondary">Annuler</a>
+          <a href="{{ path('admin_events_participants', { id: evenement.id }) }}" class="btn-secondary">Voir les participants</a>
+          <button type="submit" class="btn-primary">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+    {{ form_end(form) }}
+  </div>
+</section>
+{% endblock %}

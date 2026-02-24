@@ -1,0 +1,163 @@
+{# templates/admin/base.html.twig #}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MediLink Admin{% endblock %}</title>
+    
+    {% block stylesheets %}
+        <!-- Bootstrap 5 -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <!-- CSS Admin (URL absolue + version pour forcer le rechargement) -->
+        <link rel="stylesheet" href="{{ app.request.schemeAndHttpHost }}{{ asset('css/admin.css') }}?v=2">
+        {% block styles %}{% endblock %}
+    {% endblock %}
+</head>
+<body>
+    <div class="admin-wrapper">
+        <div class="admin-container">
+            <!-- Sidebar (logo en haut + navigation) -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-logo">
+                        <div class="sidebar-logo-icon">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <div class="sidebar-logo-text">
+                            <span class="sidebar-logo-name">MediLink</span>
+                            <span class="sidebar-logo-sub">ADMINISTRATION</span>
+                        </div>
+                    </div>
+                </div>
+                <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Tableau de bord</div>
+                    <a href="{{ path('admin_dashboard') }}" class="nav-item {{ app.request.get('_route') == 'admin_dashboard' ? 'active' : '' }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Vue d'ensemble</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestion</div>
+                    <a href="{{ path('admin_events_index') }}" class="nav-item {{ (app.request.get('_route')|default('')) starts with 'admin_events' ? 'active' : '' }}">
+                        <i class="fas fa-calendar-day"></i>
+                        <span>Événements</span>
+                        {% if events_count is defined and events_count > 0 %}
+                            <span class="nav-badge">{{ events_count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+
+                <div class="nav-section nav-section-bottom">
+                    <a href="{{ path('front_home', {'mode': 'public'}) }}" class="nav-item" target="_blank">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span>Voir le site</span>
+                    </a>
+                </div>
+
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name">Administrateur</div>
+                            <div class="user-role">Panel de gestion</div>
+                        </div>
+                        <a href="{{ path('front_home', {'mode': 'public'}) }}" class="btn-icon" title="Retour au site">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <a href="{{ path('app_logout') }}" class="btn-icon" title="Déconnexion">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="content-topbar">
+                    <div class="content-topbar-left">
+                        <h1 class="content-page-title">{% block page_title %}{% endblock %}</h1>
+                        <div class="content-page-date">{{ "now"|date("d/m/Y") }} • {{ "now"|date("H:i:s") }}</div>
+                    </div>
+                    <div class="content-topbar-actions">
+                        <span class="content-topbar-user" title="Administrateur"><i class="fas fa-user-circle"></i></span>
+                        <button type="button" class="content-topbar-icon" title="Actualiser" onclick="location.reload()">
+                            <i class="fas fa-rotate-right"></i>
+                        </button>
+                        <button type="button" class="content-topbar-icon topbar-menu-toggle" title="Menu">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages flash -->
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+                        <i class="fas fa-check-circle me-2"></i> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+                {% for message in app.flashes('error') %}
+                    <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+
+                <div class="content-body">
+                    {% block body %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    {% block javascripts %}
+        <!-- Bootstrap 5 JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- JavaScript Admin -->
+        <script src="{{ asset('js/admin.js') }}"></script>
+        <script>
+        (function() {
+            var apiUrl = '{{ path('admin_events_api_generate_description') }}';
+            document.body.addEventListener('click', function(e) {
+                var btn = e.target.closest('.js-generate-event-description');
+                if (!btn) return;
+                e.preventDefault();
+                var form = btn.closest('form');
+                if (!form) return;
+                var titreInput = form.querySelector('input[name*="[titre]"], input[id$="_titre"]');
+                var descTextarea = form.querySelector('textarea[name*="[description]"], textarea[id$="_description"]');
+                if (!titreInput || !descTextarea) return;
+                var title = (titreInput.value || '').trim();
+                if (!title) { alert('Veuillez saisir un titre d\'événement.'); return; }
+                var originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Génération...';
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: 'title=' + encodeURIComponent(title)
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.description) descTextarea.value = data.description;
+                    else if (data.error) alert(data.error);
+                })
+                .catch(function() { alert('Erreur lors de la génération. Vérifiez que la clé Hugging Face est configurée.'); })
+                .finally(function() { btn.disabled = false; btn.innerHTML = originalHtml; });
+            });
+        })();
+        </script>
+        {% block page_scripts %}{% endblock %}
+    {% endblock %}
+</body>
+</html>

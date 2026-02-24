@@ -1,0 +1,74 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Participants - {{ evenement.titre }}{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-users"></i> Participants</h2>
+    <p>{{ evenement.titre }} — {{ evenement.dateEvenement|date('d/m/Y') }} — {{ evenement.lieu }}</p>
+  </div>
+
+  <p style="margin-bottom: 15px;">
+    <a href="{{ path('admin_events_index') }}" class="btn-secondary">
+      <i class="fa-solid fa-arrow-left"></i> Retour à la liste des événements
+    </a>
+  </p>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Participant</th>
+          <th>Email</th>
+          <th>Statut</th>
+          <th>Date d'inscription</th>
+          <th>Commentaire</th>
+          <th style="width: 140px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in participations %}
+          <tr>
+            <td>{{ p.user ? p.user.fullName : '—' }}</td>
+            <td>{{ p.user ? p.user.email : '—' }}</td>
+            <td>
+              {% if p.statut == 'confirme' %}
+                <span class="badge badge-success">Confirmé</span>
+              {% elseif p.statut == 'annule' %}
+                <span class="badge badge-error">Annulé</span>
+              {% else %}
+                <span class="badge badge-warning">En attente</span>
+              {% endif %}
+            </td>
+            <td>{{ p.dateInscription|date('d/m/Y H:i') }}</td>
+            <td>{{ p.commentaire|default('—') }}</td>
+            <td>
+              <div class="actions">
+                {% if p.statut == 'en_attente' %}
+                  <form method="post" action="{{ path('admin_events_participant_accept', { id: evenement.id, participationId: p.id }) }}" style="display:inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('accept_participant_' ~ p.id) }}">
+                    <button type="submit" class="icon-btn" title="Accepter">
+                      <i class="fa-solid fa-check"></i>
+                    </button>
+                  </form>
+                {% endif %}
+                <form method="post" action="{{ path('admin_events_participant_delete', { id: evenement.id, participationId: p.id }) }}" style="display:inline" onsubmit="return confirm('Retirer ce participant de l\'événement ?');">
+                  <input type="hidden" name="_token" value="{{ csrf_token('delete_participant_' ~ p.id) }}">
+                  <button type="submit" class="icon-btn" title="Supprimer">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6">Aucun participant pour cet événement.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

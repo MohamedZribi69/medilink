@@ -1,0 +1,73 @@
+{% extends 'medecin/base.html.twig' %}
+
+{% block title %}Modifier ordonnance #{{ ordonnance.id }} - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-file-prescription"></i> Modifier l'ordonnance</h2>
+    <p><a href="{{ path('medecin_ordonnances_index') }}"><i class="fa-solid fa-arrow-left"></i> Retour</a></p>
+  </div>
+
+  {{ form_start(form) }}
+  <div class="form-row">
+    <div class="form-group">
+      {{ form_label(form.dateCreation) }}
+      {{ form_widget(form.dateCreation, { attr: { class: 'input' } }) }}
+      {{ form_errors(form.dateCreation) }}
+    </div>
+    <div class="form-group">
+      {{ form_label(form.patient) }}
+      {{ form_widget(form.patient, { attr: { class: 'input' } }) }}
+      {{ form_errors(form.patient) }}
+    </div>
+  </div>
+  <div class="form-group">
+    {{ form_label(form.instructions) }}
+    {{ form_widget(form.instructions, { attr: { class: 'input', rows: 3 } }) }}
+    {{ form_errors(form.instructions) }}
+  </div>
+
+  <h3 style="margin: 20px 0 12px;">Médicaments</h3>
+  <div id="ordonnance-medicaments" data-prototype="{{ form_widget(form.ordonnanceMedicaments.vars.prototype)|e('html_attr') }}" data-index="{{ form.ordonnanceMedicaments|length }}">
+    {% for om in form.ordonnanceMedicaments %}
+      <div class="form-row ordonnance-medicament-row">
+        <div class="form-group">{{ form_widget(om.medicament, { attr: { class: 'input' } }) }}</div>
+        <div class="form-group" style="max-width: 100px;">{{ form_widget(om.quantite, { attr: { class: 'input' } }) }}</div>
+        <button type="button" class="btn-secondary remove-medicament"><i class="fa-solid fa-minus"></i></button>
+      </div>
+    {% endfor %}
+  </div>
+  <button type="button" id="add-medicament" class="btn-secondary" style="margin-top: 8px;">
+    <i class="fa-solid fa-plus"></i> Ajouter un médicament
+  </button>
+
+  <div class="form-actions" style="margin-top: 24px;">
+    <a href="{{ path('medecin_ordonnances_index') }}" class="btn-secondary">Annuler</a>
+    <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
+  </div>
+  {{ form_end(form) }}
+</section>
+
+<script>
+(function() {
+  const container = document.getElementById('ordonnance-medicaments');
+  const prototype = container.dataset.prototype;
+  let index = parseInt(container.dataset.index || '0', 10);
+
+  document.getElementById('add-medicament').addEventListener('click', function() {
+    const html = prototype.replace(/__name__/g, index);
+    const div = document.createElement('div');
+    div.className = 'form-row ordonnance-medicament-row';
+    div.innerHTML = html + ' <button type="button" class="btn-secondary remove-medicament"><i class="fa-solid fa-minus"></i></button>';
+    container.appendChild(div);
+    div.querySelector('.remove-medicament').addEventListener('click', function() { div.remove(); });
+    index++;
+  });
+
+  container.querySelectorAll('.remove-medicament').forEach(function(btn) {
+    btn.addEventListener('click', function() { btn.closest('.ordonnance-medicament-row').remove(); });
+  });
+})();
+</script>
+{% endblock %}

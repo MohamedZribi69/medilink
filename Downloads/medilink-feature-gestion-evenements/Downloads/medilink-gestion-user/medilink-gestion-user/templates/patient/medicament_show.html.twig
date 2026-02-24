@@ -1,0 +1,38 @@
+{% extends 'event/base.html.twig' %}
+
+{% block title %}{{ medicament.nom }} - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-pills"></i> {{ medicament.nom }}</h2>
+    <p><a href="{{ path('patient_medicaments_index') }}"><i class="fa-solid fa-arrow-left"></i> Retour aux médicaments</a></p>
+  </div>
+
+  <div class="card" style="max-width: 560px;">
+    <p><strong>Description :</strong> {{ medicament.description|default('Aucune description.') }}</p>
+    <p><strong>Quantité en stock :</strong> {{ medicament.quantiteStock }}</p>
+  </div>
+
+  <h3 style="margin: 24px 0 12px; color: var(--primary-color, #2563eb);"><i class="fa-solid fa-file-prescription"></i> Ordonnance(s) pour ce médicament</h3>
+
+  {% if ordonnances is empty %}
+    <p class="hint">Vous n'avez pas d'ordonnance pour ce médicament.</p>
+  {% else %}
+    {% for o in ordonnances %}
+      <div class="card" style="margin-bottom: 16px;">
+        <p><strong>Date :</strong> {{ o.dateCreation|date('d/m/Y H:i') }}</p>
+        <p><strong>Médecin :</strong> {{ o.medecin ? o.medecin.fullName : '-' }}</p>
+        {% for om in o.ordonnanceMedicaments %}
+          {% if om.medicament.id == medicament.id %}
+            <p><strong>Quantité prescrite :</strong> {{ om.quantite }}</p>
+          {% endif %}
+        {% endfor %}
+        {% if o.instructions %}
+          <p><strong>Instructions :</strong><br>{{ o.instructions|nl2br }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endif %}
+</section>
+{% endblock %}

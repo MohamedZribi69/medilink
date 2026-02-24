@@ -1,0 +1,41 @@
+{% extends 'medecin/base.html.twig' %}
+
+{% block title %}Nouvelle disponibilité - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-clock"></i> Nouvelle disponibilité</h2>
+    <p>Ajoutez une plage horaire de disponibilité. Elle pourra être réservée pour un rendez-vous.</p>
+  </div>
+
+  <div class="table-container" style="max-width: 600px;">
+    {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
+    <div style="padding: 20px;">
+      <div class="form-group">
+        <label for="{{ form.date.vars.id }}">Date</label>
+        {{ form_widget(form.date, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.date) }}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.heureDebut.vars.id }}">Heure de début</label>
+          {{ form_widget(form.heureDebut, { attr: { class: 'input' } }) }}
+          {{ form_errors(form.heureDebut) }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.heureFin.vars.id }}">Heure de fin</label>
+          {{ form_widget(form.heureFin, { attr: { class: 'input' } }) }}
+          {{ form_errors(form.heureFin) }}
+          <p class="hint">L'heure de fin doit être postérieure à l'heure de début.</p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 20px;">
+        <a href="{{ path('medecin_index') }}" class="btn-secondary">Annuler</a>
+        <button type="submit" class="btn-primary">Enregistrer</button>
+      </div>
+    </div>
+    {{ form_end(form) }}
+  </div>
+</section>
+{% endblock %}
