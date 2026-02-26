@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
+use App\Service\MailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +18,8 @@ class RegistrationController extends AbstractController
     public function register(
         Request $request,
         EntityManagerInterface $em,
-        UserPasswordHasherInterface $hasher
+        UserPasswordHasherInterface $hasher,
+        MailService $mailService
     ): Response {
         $user = new User();
 
@@ -42,6 +44,10 @@ class RegistrationController extends AbstractController
             $user->setPassword($hashedPassword);
             $em->persist($user);
             $em->flush();
+
+            $verificationCode = (string) random_int(100000, 999999);
+            $fullName = $user->getFullName() ?? $user->getEmail() ?? '';
+            $mailService->sendRegistrationCode($user->getEmail() ?? '', $fullName, $verificationCode);
 
             return $this->redirectToRoute('app_login');
         }

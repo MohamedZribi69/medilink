@@ -10,6 +10,8 @@
   <div class="auth-body">
     {{ form_start(registrationForm) }}
 
+      {{ form_errors(registrationForm) }}
+
       <div class="form-group">
         {{ form_label(registrationForm.fullName) }}
         {{ form_widget(registrationForm.fullName, { attr: { class: 'input', placeholder: 'Ex: Mohamed Zribi' } }) }}
@@ -27,6 +29,13 @@
         {{ form_widget(registrationForm.plainPassword, { attr: { class: 'input', placeholder: 'Min 6 caractères' } }) }}
         {{ form_errors(registrationForm.plainPassword) }}
       </div>
+
+      {# hCaptcha temporairement désactivé pour les tests de mailer
+      <div class="form-group">
+        <label>Vérification</label>
+        <div class="h-captcha" data-sitekey="0x4AAAAAACippYZ7-CC-3q2p"></div>
+      </div>
+      #}
 
       <button class="btn-primary" type="submit">
         <i class="fa-solid fa-floppy-disk"></i> Créer mon compte

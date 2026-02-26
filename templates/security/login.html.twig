@@ -42,7 +42,10 @@
           Se souvenir de moi
         </label>
 
-        <a class="link" href="{{ path('app_register') }}">Créer un compte</a>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+          <a class="link" href="{{ path('app_register') }}">Créer un compte</a>
+          <a class="link" href="{{ path('app_forgot_password') }}">Mot de passe oublié ?</a>
+        </div>
       </div>
 
       <div style="margin-top:16px;">
