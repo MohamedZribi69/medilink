@@ -87,6 +87,15 @@
                                     <th>Soumis le :</th>
                                     <td>{{ don.dateSoumission|date('d/m/Y à H:i') }}</td>
                                 </tr>
+                                {% if don.donateur %}
+                                    <tr>
+                                        <th>Patient (donateur) :</th>
+                                        <td>
+                                            <i class="fas fa-user me-1"></i> {{ don.donateur.fullName }}
+                                            <br><small class="text-muted">{{ don.donateur.email }}</small>
+                                        </td>
+                                    </tr>
+                                {% endif %}
                                 {% if don.dateExpiration %}
                                     <tr>
                                         <th>Expiration :</th>
@@ -169,6 +178,23 @@
 
                     <!-- Actions générales -->
                     <div class="list-group">
+                        {% if don.estValide %}
+                            <a href="{{ path('admin_don_recu_pdf', {'id': don.id}) }}" class="list-group-item list-group-item-action" target="_blank">
+                                <i class="fas fa-file-pdf me-2"></i> Télécharger le reçu PDF
+                            </a>
+                            {% if don.donateur and don.donateur.email %}
+                                <form action="{{ path('admin_don_envoyer_recu_email', {'id': don.id}) }}" method="post" class="d-block">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('envoyer_recu_email' ~ don.id) }}">
+                                    <button type="submit" class="list-group-item list-group-item-action border-0 w-100 text-start bg-transparent">
+                                        <i class="fas fa-envelope me-2"></i> Envoyer le reçu par e-mail au patient
+                                    </button>
+                                </form>
+                            {% else %}
+                                <div class="list-group-item text-muted small">
+                                    <i class="fas fa-info-circle me-2"></i> Aucun patient (donateur) avec e-mail pour ce don — envoi impossible.
+                                </div>
+                            {% endif %}
+                        {% endif %}
                         <a href="{{ path('admin_don_edit', {'id': don.id}) }}" class="list-group-item list-group-item-action">
                             <i class="fas fa-edit me-2"></i> Modifier ce don
                         </a>

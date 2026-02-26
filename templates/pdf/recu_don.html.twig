@@ -1,0 +1,76 @@
+{# Reçu PDF personnalisé – standalone HTML pour Dompdf #}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Reçu de don #{{ don.id }} – MediLink</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 11pt; color: #333; margin: 0; padding: 24px; line-height: 1.4; }
+        .header { border-bottom: 3px solid #1a73e8; padding-bottom: 16px; margin-bottom: 24px; }
+        .logo { font-size: 22pt; font-weight: bold; color: #1a73e8; margin: 0 0 4px 0; }
+        .tagline { font-size: 9pt; color: #666; margin: 0; }
+        .title { font-size: 16pt; color: #1a73e8; margin: 0 0 20px 0; }
+        .badge { display: inline-block; background: #28a745; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 10pt; font-weight: bold; margin-bottom: 16px; }
+        table.info { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        table.info th { text-align: left; width: 38%; padding: 6px 8px; color: #555; font-weight: normal; }
+        table.info td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+        .thanks { margin-top: 28px; padding: 16px; background: #f8f9fa; border-left: 4px solid #1a73e8; font-size: 10pt; }
+        .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ddd; font-size: 9pt; color: #888; }
+        .ref { font-size: 10pt; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <p class="logo">MediLink</p>
+        <p class="tagline">Plateforme de dons médicaux et matériel de santé</p>
+    </div>
+
+    <h1 class="title">Reçu de don</h1>
+    <span class="badge">Don validé</span>
+
+    <table class="info">
+        <tr>
+            <th>Référence</th>
+            <td><strong>#{{ don.id }}</strong></td>
+        </tr>
+        <tr>
+            <th>Date de soumission</th>
+            <td>{{ don.dateSoumission|date('d/m/Y à H:i') }}</td>
+        </tr>
+        <tr>
+            <th>Catégorie</th>
+            <td>{{ don.categorie.nom }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ don.articleDescription }}</td>
+        </tr>
+        <tr>
+            <th>Quantité</th>
+            <td>{{ don.quantite }} {{ don.unite ?? 'unités' }}</td>
+        </tr>
+        <tr>
+            <th>État</th>
+            <td>{{ don.etat }}</td>
+        </tr>
+        {% if don.detailsSupplementaires %}
+        <tr>
+            <th>Détails supplémentaires</th>
+            <td>{{ don.detailsSupplementaires|nl2br }}</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <p class="thanks">
+        <strong>Merci pour votre don.</strong> Il contribue à renforcer l'accès aux équipements et fournitures de santé. 
+        Ce reçu atteste de la validation de votre don par l'équipe MediLink.
+    </p>
+
+    <p class="ref">Document généré le {{ "now"|date('d/m/Y à H:i') }} – MediLink – Reçu don #{{ don.id }}</p>
+
+    <div class="footer">
+        MediLink – Plateforme de dons médicaux. Ce reçu est établi à titre informatif et peut être conservé comme justificatif de don.
+    </div>
+</body>
+</html>

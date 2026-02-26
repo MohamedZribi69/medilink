@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Dons;
-use App\Entity\CategoriesDons;
+use App\Entity\CategorieDon;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -21,7 +21,7 @@ class DonFrontType extends AbstractType
     {
         $builder
             ->add('categorie', EntityType::class, [
-                'class' => CategoriesDons::class,
+                'class' => CategorieDon::class,
                 'choice_label' => 'nom',
                 'placeholder' => 'Sélectionnez une catégorie',
                 'attr' => ['class' => 'form-control'],

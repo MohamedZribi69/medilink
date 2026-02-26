@@ -7,4 +7,6 @@ return [
     Symfony\Bundle\MakerBundle\MakerBundle::class => ['dev' => true],
     Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],
     Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle::class => ['all' => true],
+    CMEN\GoogleChartsBundle\CMENGoogleChartsBundle::class => ['all' => true],
+    Nucleos\DompdfBundle\NucleosDompdfBundle::class => ['all' => true],
 ];

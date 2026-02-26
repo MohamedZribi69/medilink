@@ -5,11 +5,13 @@ namespace App\Controller\Front;
 use App\Entity\Dons;
 use App\Form\DonFrontType;
 use App\Repository\DonsRepository;
-use App\Repository\CategoriesDonsRepository;
+use App\Repository\CategorieDonRepository;
+use App\Service\DonCategorySuggestionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/don')]
@@ -25,13 +27,17 @@ class DonController extends AbstractController
     public function nouveau(
         Request $request,
         EntityManagerInterface $entityManager,
-        CategoriesDonsRepository $categorieRepo
+        CategorieDonRepository $categorieRepo
     ): Response {
         $don = new Dons();
         $form = $this->createForm(DonFrontType::class, $don);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $user = $this->getUser();
+            if ($user) {
+                $don->setDonateur($user);
+            }
             $entityManager->persist($don);
             $entityManager->flush();
             $this->addFlash(
@@ -49,11 +55,35 @@ class DonController extends AbstractController
         ]);
     }
 
+    /**
+     * API : suggestion de catégorie à partir de la description du don (IA ou mots-clés).
+     */
+    #[Route('/suggest-category', name: 'front_don_suggest_category', methods: ['GET'])]
+    public function suggestCategory(
+        Request $request,
+        CategorieDonRepository $categorieRepo,
+        DonCategorySuggestionService $suggestionService
+    ): JsonResponse {
+        $description = $request->query->get('description', '');
+        $categories = $categorieRepo->findAll();
+
+        $suggested = $suggestionService->suggestCategory($description, $categories);
+
+        if ($suggested === null) {
+            return new JsonResponse(['suggestedCategoryId' => null, 'suggestedCategoryName' => null]);
+        }
+
+        return new JsonResponse([
+            'suggestedCategoryId' => $suggested['id'],
+            'suggestedCategoryName' => $suggested['nom'],
+        ]);
+    }
+
     #[Route('/mes-dons', name: 'front_don_mes_dons', methods: ['GET'])]
     public function mesDons(
         Request $request,
         DonsRepository $donRepository,
-        CategoriesDonsRepository $categorieRepo
+        CategorieDonRepository $categorieRepo
     ): Response {
         $categorieId = $request->query->getInt('categorie') ?: null;
         $urgence = $request->query->get('urgence') ?: null;
@@ -93,7 +123,7 @@ class DonController extends AbstractController
     public function mesDonsRefresh(
         Request $request,
         DonsRepository $donRepository,
-        CategoriesDonsRepository $categorieRepo
+        CategorieDonRepository $categorieRepo
     ): Response {
         $categorieId = $request->query->getInt('categorie') ?: null;
         $urgence = $request->query->get('urgence') ?: null;
@@ -119,7 +149,7 @@ class DonController extends AbstractController
     public function liste(
         Request $request,
         DonsRepository $donRepository,
-        CategoriesDonsRepository $categorieRepo
+        CategorieDonRepository $categorieRepo
     ): Response {
         $categorieId = $request->query->getInt('categorie') ?: null;
         $urgence = $request->query->get('urgence') ?: null;
@@ -155,7 +185,7 @@ class DonController extends AbstractController
         Request $request,
         Dons $don,
         EntityManagerInterface $entityManager,
-        CategoriesDonsRepository $categorieRepo
+        CategorieDonRepository $categorieRepo
     ): Response
     {
         $form = $this->createForm(DonFrontType::class, $don);
@@ -214,7 +244,7 @@ class DonController extends AbstractController
             if ($this->isCsrfTokenValid('cancel'.$don->getId(), $request->request->get('_token'))) {
                 $don->setStatut(Dons::STATUT_ANNULE);
                 $entityManager->flush();
-                
+
                 $this->addFlash('success', 'Votre don a bien été annulé. Il ne sera pas traité par l\'administration.');
             }
         }

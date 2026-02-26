@@ -1,0 +1,3 @@
+# En dev : accès au dashboard admin sans login (votre gestion locale)
+parameters:
+    admin_access_role: PUBLIC_ACCESS

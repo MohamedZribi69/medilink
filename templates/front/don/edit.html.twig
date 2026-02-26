@@ -1,7 +1,7 @@
-{% extends app.user ? 'event/base.html.twig' : 'front/base.html.twig' %}
+{% extends 'front/base.html.twig' %}
 
 {% block title %}Modifier mon don - MediLink{% endblock %}
-{% block event_styles %}{{ parent() }}<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">{{ include('_dons_event_styles.html.twig') }}{% endblock %}
+{% block styles %}{{ parent() }}{{ include('_dons_event_styles.html.twig') }}{% endblock %}
 
 {% block body %}
 <div class="container py-5 page-dons">
@@ -32,6 +32,12 @@
                             {{ form_label(form.categorie) }}
                             {{ form_widget(form.categorie, {'attr': {'class': 'input'}}) }}
                             <div class="invalid-feedback form-error">Veuillez sélectionner une catégorie.</div>
+                            <div id="category-suggestion-box" class="mt-2 p-2 rounded border border-success bg-light" style="display: none;">
+                                <span class="text-success small"><i class="fas fa-robot me-1"></i> Catégorie suggérée : <strong id="suggested-category-name"></strong></span>
+                                <button type="button" id="btn-apply-suggestion" class="btn btn-sm btn-success ms-2">
+                                    <i class="fas fa-check me-1"></i> Appliquer
+                                </button>
+                            </div>
                         </div>
                         <div class="form-group">
                             {{ form_label(form.quantite) }}
@@ -130,4 +136,44 @@
         </div>
     </div>
 </div>
+{% block page_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var descInput = document.querySelector('#{{ form.articleDescription.vars.id }}');
+    var categorySelect = document.querySelector('#{{ form.categorie.vars.id }}');
+    var suggestionBox = document.getElementById('category-suggestion-box');
+    var suggestedNameEl = document.getElementById('suggested-category-name');
+    var btnApply = document.getElementById('btn-apply-suggestion');
+    var suggestUrl = '{{ path('front_don_suggest_category') }}';
+    var suggestedCategoryId = null;
+    var suggestTimeout = null;
+    function fetchSuggestion() {
+        var desc = (descInput && descInput.value) ? descInput.value.trim() : '';
+        if (desc.length < 2) { if (suggestionBox) suggestionBox.style.display = 'none'; return; }
+        fetch(suggestUrl + '?description=' + encodeURIComponent(desc))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.suggestedCategoryId && data.suggestedCategoryName) {
+                    suggestedCategoryId = data.suggestedCategoryId;
+                    if (suggestedNameEl) suggestedNameEl.textContent = data.suggestedCategoryName;
+                    if (suggestionBox) suggestionBox.style.display = 'block';
+                } else { suggestedCategoryId = null; if (suggestionBox) suggestionBox.style.display = 'none'; }
+            })
+            .catch(function() { suggestedCategoryId = null; if (suggestionBox) suggestionBox.style.display = 'none'; });
+    }
+    if (descInput) {
+        descInput.addEventListener('input', function() { clearTimeout(suggestTimeout); suggestTimeout = setTimeout(fetchSuggestion, 700); });
+        descInput.addEventListener('blur', fetchSuggestion);
+    }
+    if (btnApply && categorySelect) {
+        btnApply.addEventListener('click', function() {
+            if (suggestedCategoryId !== null) {
+                categorySelect.value = String(suggestedCategoryId);
+                if (suggestionBox) suggestionBox.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
 {% endblock %}

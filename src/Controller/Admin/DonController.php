@@ -5,15 +5,18 @@ namespace App\Controller\Admin;
 use App\Entity\Dons;
 use App\Form\DonAdminType;
 use App\Repository\DonsRepository;
-use App\Repository\CategoriesDonsRepository;
+use App\Repository\CategorieDonRepository;
 use App\Service\DonScoringService;
 use App\Service\DonTextCheckService;
+use App\Service\PdfService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Environment;
 
 #[Route('/admin/dons')]
 class DonController extends AbstractController
@@ -22,7 +25,7 @@ class DonController extends AbstractController
     public function index(
         Request $request,
         DonsRepository $donRepository,
-        CategoriesDonsRepository $categoriesDonsRepository,
+        CategorieDonRepository $categorieDonRepository,
         DonScoringService $donScoringService,
         EntityManagerInterface $entityManager
     ): Response {
@@ -76,7 +79,7 @@ class DonController extends AbstractController
             'rejetes' => $donRepository->count(['statut' => Dons::STATUT_REJETE]),
         ];
 
-        $categories = $categoriesDonsRepository->findAll();
+        $categories = $categorieDonRepository->findAll();
         $categoriesStats = $donRepository->getValidCountsByCategory();
 
         return $this->render('admin/don/index.html.twig', [
@@ -149,6 +152,85 @@ class DonController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/recu-pdf', name: 'admin_don_recu_pdf', methods: ['GET'])]
+    public function recuPdf(Dons $don, PdfService $pdfService, Environment $twig): Response
+    {
+        if (!$don->estValide()) {
+            $this->addFlash('warning', 'Un reçu PDF ne peut être généré que pour un don validé.');
+            return $this->redirectToRoute('admin_don_show', ['id' => $don->getId()]);
+        }
+
+        $html = $twig->render('pdf/recu_don.html.twig', ['don' => $don]);
+        $pdf = $pdfService->generateFromHtml($html);
+
+        $filename = sprintf('Recu_MediLink_Don_%d.pdf', $don->getId());
+        $response = new Response($pdf);
+        $response->headers->set('Content-Type', 'application/pdf');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+
+        return $response;
+    }
+
+    #[Route('/{id}/envoyer-recu-email', name: 'admin_don_envoyer_recu_email', methods: ['POST'])]
+    public function envoyerRecuEmail(
+        Request $request,
+        Dons $don,
+        PdfService $pdfService,
+        MailerInterface $mailer,
+        Environment $twig
+    ): Response {
+        if (!$this->isCsrfTokenValid('envoyer_recu_email' . $don->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de sécurité invalide.');
+            return $this->redirectToRoute('admin_don_show', ['id' => $don->getId()]);
+        }
+
+        if (!$don->estValide()) {
+            $this->addFlash('warning', 'Un reçu ne peut être envoyé que pour un don validé.');
+            return $this->redirectToRoute('admin_don_show', ['id' => $don->getId()]);
+        }
+
+        $donateur = $don->getDonateur();
+        if (!$donateur || !$donateur->getEmail()) {
+            $this->addFlash('warning', 'Ce don n\'a pas de patient (donateur) associé avec un e-mail. Impossible d\'envoyer le reçu.');
+            return $this->redirectToRoute('admin_don_show', ['id' => $don->getId()]);
+        }
+
+        try {
+            $from = $this->getParameter('mailer_from') ?: 'noreply@medilink.org';
+        } catch (\Throwable $e) {
+            $from = 'noreply@medilink.org';
+        }
+
+        try {
+            $html = $twig->render('pdf/recu_don.html.twig', ['don' => $don]);
+            $pdf = $pdfService->generateFromHtml($html);
+            $filename = sprintf('Recu_MediLink_Don_%d.pdf', $don->getId());
+
+            $email = (new \Symfony\Component\Mime\Email())
+                ->from($from)
+                ->to($donateur->getEmail())
+                ->subject(sprintf('Votre reçu de don MediLink #%d', $don->getId()))
+                ->text(sprintf(
+                    "Bonjour %s,\n\nVotre don #%d a été validé. Veuillez trouver ci-joint votre reçu officiel MediLink.\n\nMerci pour votre générosité.\n\nL'équipe MediLink",
+                    $donateur->getFullName() ?? 'Donateur',
+                    $don->getId()
+                ))
+                ->attach($pdf, $filename, 'application/pdf');
+
+            $mailer->send($email);
+
+            $this->addFlash('success', sprintf(
+                'Le reçu a été envoyé par e-mail à %s (expéditeur : %s).',
+                $donateur->getEmail(),
+                $from
+            ));
+        } catch (\Throwable $e) {
+            $this->addFlash('error', 'Impossible d\'envoyer l\'e-mail : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('admin_don_show', ['id' => $don->getId()]);
+    }
+
     #[Route('/{id}/valider', name: 'admin_don_valider', methods: ['POST'])]
     public function valider(Request $request, Dons $don, EntityManagerInterface $entityManager): Response
     {
@@ -201,14 +283,15 @@ class DonController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash(
-            'success',
-            sprintf(
-                'Analyse automatique effectuée (score %d/100) : %s.',
-                $resultat['score'],
-                $resultat['decisionLabel']
-            )
+        $message = sprintf(
+            'Analyse automatique effectuée (score %d/100) : %s.',
+            $resultat['score'],
+            $resultat['decisionLabel']
         );
+        if (!empty($resultat['apiError'])) {
+            $message .= ' Détail : ' . $resultat['apiError'];
+        }
+        $this->addFlash('success', $message);
 
         return $this->redirectToRoute('admin_don_show', ['id' => $don->getId()]);
     }

@@ -1,9 +1,10 @@
 # This file is the entry point to configure your own services.
 # Files in the packages/ subdirectory configure your dependencies.
 
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    openai_api_key_default: ''
+    # En prod : ROLE_ADMIN pour protéger /admin. En dev : overridé à PUBLIC_ACCESS pour accès direct.
+    admin_access_role: ROLE_ADMIN
 
 services:
     # default configuration for services in *this* file
@@ -19,6 +20,19 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
+    # Container injecté explicitement pour PdfService (Psr\Container\ContainerInterface)
+    App\Service\PdfService:
+        arguments:
+            $container: '@service_container'
+
+    App\Service\DonCategorySuggestionService:
+        arguments:
+            $openaiApiKey: '%env(trim:default:openai_api_key_default:OPENAI_API_KEY)%'
+
+    App\Service\DonScoringService:
+        arguments:
+            $openaiApiKey: '%env(trim:default:openai_api_key_default:OPENAI_API_KEY)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

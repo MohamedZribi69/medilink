@@ -25,7 +25,7 @@ class Dons
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false, name: 'categorie_id', referencedColumnName: 'id')]
     #[Assert\NotNull(message: 'La catégorie est obligatoire.')]
-    private ?CategoriesDons $categorie = null;
+    private ?CategorieDon $categorie = null;
 
     #[ORM\Column(length: 255, name: 'article_description')]
     #[Assert\NotBlank(message: 'La description de l\'article est obligatoire.')]
@@ -77,6 +77,10 @@ class Dons
     #[ORM\Column(name: 'date_soumission')]
     private ?\DateTimeImmutable $dateSoumission = null;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, name: 'id_user', referencedColumnName: 'id', onDelete: 'SET NULL')]
+    private ?User $donateur = null;
+
     // Analyse automatique / scoring (non stocké en base)
     private ?int $scoreAuto = null;
     private ?string $decisionAuto = null;
@@ -90,8 +94,8 @@ class Dons
 
     // Getters et Setters
     public function getId(): ?int { return $this->id; }
-    public function getCategorie(): ?CategoriesDons { return $this->categorie; }
-    public function setCategorie(?CategoriesDons $categorie): static { $this->categorie = $categorie; return $this; }
+    public function getCategorie(): ?CategorieDon { return $this->categorie; }
+    public function setCategorie(?CategorieDon $categorie): static { $this->categorie = $categorie; return $this; }
     public function getArticleDescription(): ?string { return $this->articleDescription; }
     public function setArticleDescription(string $articleDescription): static { $this->articleDescription = $articleDescription; return $this; }
     public function getQuantite(): ?int { return $this->quantite; }
@@ -110,6 +114,9 @@ class Dons
     public function setDateExpiration(?\DateTimeInterface $dateExpiration): static { $this->dateExpiration = $dateExpiration; return $this; }
     public function getDateSoumission(): ?\DateTimeImmutable { return $this->dateSoumission; }
     public function setDateSoumission(\DateTimeImmutable $dateSoumission): static { $this->dateSoumission = $dateSoumission; return $this; }
+
+    public function getDonateur(): ?User { return $this->donateur; }
+    public function setDonateur(?User $donateur): static { $this->donateur = $donateur; return $this; }
 
     public function getScoreAuto(): ?int { return $this->scoreAuto; }
     public function setScoreAuto(?int $scoreAuto): static { $this->scoreAuto = $scoreAuto; return $this; }

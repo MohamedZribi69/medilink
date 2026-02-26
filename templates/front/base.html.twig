@@ -39,23 +39,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ app.request.get('_route') == 'app_events_index' ? 'active' : '' }}" href="{{ path('app_events_index') }}">
-                            <i class="fas fa-calendar-day me-1"></i> Événements
-                        </a>
-                    </li>
-                    {% if app.user %}
-                    <li class="nav-item">
-                        <a class="nav-link {{ (app.request.get('_route')|default('')) starts with 'patient_rendezvous' ? 'active' : '' }}" href="{{ path('patient_rendezvous_index') }}">
-                            <i class="fas fa-calendar-check me-1"></i> Rendez-vous
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ (app.request.get('_route')|default('')) starts with 'patient_medicaments' or app.request.get('_route') == 'patient_medicament_show' ? 'active' : '' }}" href="{{ path('patient_medicaments_index') }}">
-                            <i class="fas fa-pills me-1"></i> Médicaments
-                        </a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item">
                         <a class="nav-link {{ (app.request.get('_route')|default('')) starts with 'front_don' ? 'active' : '' }}" href="{{ path('front_don_liste') }}">
                             <i class="fas fa-hand-holding-medical me-1"></i> Dons
                         </a>
@@ -63,37 +46,6 @@
                 </ul>
                 
                 <div class="d-flex align-items-center gap-2">
-                    {% if app.request.get('mode') != 'public' %}
-                        <div class="me-2 text-muted small">
-                            <i class="fas fa-user-circle me-1"></i>
-                            <span>Espace Donateur</span>
-                        </div>
-                    {% endif %}
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <a href="{{ path('admin_dashboard') }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-cog me-1"></i> Admin
-                        </a>
-                    {% elseif is_granted('ROLE_MEDECIN') %}
-                        <a href="{{ path('medecin_index') }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-user-md me-1"></i> Espace Médecin
-                        </a>
-                    {% elseif is_granted('ROLE_USER') %}
-                        <a href="{{ path('patient_rendezvous_index') }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-user me-1"></i> Espace Patient
-                        </a>
-                    {% endif %}
-                    {% if app.user %}
-                        <a href="{{ path('app_logout') }}" class="btn btn-outline-danger btn-sm">
-                            <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
-                        </a>
-                    {% else %}
-                        <a href="{{ path('app_login') }}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-sign-in-alt me-1"></i> Connexion
-                        </a>
-                        <a href="{{ path('app_register') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-user-plus me-1"></i> Inscription
-                        </a>
-                    {% endif %}
                     <a href="mailto:contact@medilink.org" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-envelope"></i> Contact
                     </a>
@@ -143,7 +95,6 @@
                     <h5 class="mb-3">Liens rapides</h5>
                     <ul class="list-unstyled">
                         <li><a href="{{ path('front_don_liste') }}" class="text-muted text-decoration-none">Dons</a></li>
-                        <li><a href="{{ path('app_events_index') }}" class="text-muted text-decoration-none">Événements</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">

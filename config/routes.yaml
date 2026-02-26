@@ -1,3 +1,7 @@
+# Route nommée pour la déconnexion (le firewall Security gère /logout)
+app_logout:
+    path: /logout
+
 controllers:
     resource:
         path: ../src/Controller/

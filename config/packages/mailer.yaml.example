@@ -1,0 +1,6 @@
+# Symfony Mailer – à activer après: composer require symfony/mailer symfony/mime
+# 1. Renommez ce fichier en mailer.yaml (supprimez .example)
+# 2. Configurez MAILER_DSN dans .env (ex: MAILER_DSN=null://null pour dev, ou smtp://...)
+framework:
+    mailer:
+        dsn: '%env(MAILER_DSN)%'
