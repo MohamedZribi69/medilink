@@ -12,7 +12,8 @@ use Symfony\Component\Mime\Address;
  */
 final class RendezVousMailerService
 {
-    private const FROM_EMAIL = 'noreply@medilink.org';
+    // IMPORTANT : doit correspondre au compte SMTP utilisé (Gmail)
+    private const FROM_EMAIL = 'medilink.no.reply@gmail.com';
     private const FROM_NAME = 'MediLink';
 
     public function __construct(

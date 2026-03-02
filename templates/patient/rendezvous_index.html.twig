@@ -7,9 +7,43 @@
   <div class="section-header">
     <h2><i class="fa-solid fa-calendar-check"></i> Prendre rendez-vous</h2>
     <p>Choisissez une disponibilité chez un médecin et réservez votre rendez-vous.</p>
+    <a href="{{ path('patient_preferences') }}" class="btn-secondary" style="margin-top: 8px; display:inline-flex; align-items:center; gap:6px;">
+      <i class="fa-solid fa-sliders"></i> Mes préférences
+    </a>
   </div>
 
-  <h3 style="margin: 24px 0 16px; color: var(--primary-color);"><i class="fa-solid fa-clock"></i> Disponibilités</h3>
+  {% if recommendedDispos is defined and recommendedDispos is not empty %}
+    <h3 style="margin: 24px 0 12px; color: var(--primary-color);">
+      <i class="fa-solid fa-star"></i> Créneaux recommandés pour vous
+    </h3>
+    <div class="creneaux-grid" style="margin-bottom: 24px;">
+      {% for d in recommendedDispos %}
+        {% set isHot = hotMedecinIds is defined and d.medecin is not null and d.medecin.id in hotMedecinIds %}
+        <div class="creneau-card creneau-card--highlight">
+          <div class="creneau-medecin">
+            <i class="fa-solid fa-user-doctor"></i>
+            <strong>{{ d.medecin.fullName }}</strong>
+            <span class="badge badge-success" style="margin-left:auto;">Recommandé</span>
+            {% if isHot %}
+              <span class="badge badge-error" style="margin-left:6px;">🔥 Très demandé</span>
+            {% endif %}
+          </div>
+          <div class="creneau-horaire">
+            <span>{{ d.date|date('d/m/Y') }}</span>
+            <span>{{ d.heureDebut|date('H:i') }} - {{ d.heureFin|date('H:i') }}</span>
+          </div>
+          <form method="post" action="{{ path('patient_rendezvous_reserver', { id: d.id }) }}" style="margin-top: 12px;">
+            <input type="hidden" name="_token" value="{{ csrf_token('reserver_' ~ d.id) }}">
+            <button type="submit" class="btn-reserver">
+              <i class="fa-solid fa-check"></i> Réserver cette disponibilité
+            </button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <h3 style="margin: 24px 0 16px; color: var(--primary-color);"><i class="fa-solid fa-clock"></i> Toutes les disponibilités</h3>
 
   {% if disponibilites is empty %}
     <div class="event-empty">
@@ -19,10 +53,14 @@
   {% else %}
     <div class="creneaux-grid">
       {% for d in disponibilites %}
+        {% set isHot = hotMedecinIds is defined and d.medecin is not null and d.medecin.id in hotMedecinIds %}
         <div class="creneau-card">
           <div class="creneau-medecin">
             <i class="fa-solid fa-user-doctor"></i>
             <strong>{{ d.medecin.fullName }}</strong>
+            {% if isHot %}
+              <span class="badge badge-error" style="margin-left:auto;">🔥 Très demandé</span>
+            {% endif %}
           </div>
           <div class="creneau-horaire">
             <span>{{ d.date|date('d/m/Y') }}</span>
@@ -96,6 +134,10 @@
   padding: 20px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
   border: 1px solid var(--medium-gray);
+}
+.creneau-card--highlight {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 14px rgba(26, 115, 232, 0.18);
 }
 .creneau-medecin {
   display: flex;

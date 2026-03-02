@@ -164,4 +164,27 @@ class RendezVousRepository extends ServiceEntityRepository
             ->orderBy('r.dateHeure', 'DESC')
             ->addOrderBy('r.id', 'DESC');
     }
+
+    /**
+     * Retourne les IDs des médecins très demandés (>= $minCount RDV depuis $from).
+     *
+     * @return int[]
+     */
+    public function findHotMedecinIds(\DateTimeInterface $from, int $minCount = 10): array
+    {
+        $rows = $this->createQueryBuilder('r')
+            ->join('r.disponibilite', 'd')
+            ->join('d.medecin', 'm')
+            ->select('m.id AS medecin_id, COUNT(r.id) AS rdv_count')
+            ->andWhere('r.dateHeure >= :from')
+            ->setParameter('from', $from)
+            ->groupBy('medecin_id')
+            ->having('COUNT(r.id) >= :minCount')
+            ->setParameter('minCount', $minCount)
+            ->orderBy('rdv_count', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $row): int => (int) $row['medecin_id'], $rows);
+    }
 }

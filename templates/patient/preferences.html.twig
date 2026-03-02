@@ -1,0 +1,42 @@
+{% extends 'event/base.html.twig' %}
+
+{% block title %}Préférences de rendez-vous - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-sliders"></i> Mes préférences de rendez-vous</h2>
+    <p>Choisissez comment vous souhaitez que MediLink vous recommande des créneaux.</p>
+  </div>
+
+  <div class="table-container" style="padding: 20px;">
+    {{ form_start(form) }}
+      <div class="form-row">
+        <div class="form-group">
+          {{ form_label(form.preferredTime) }}
+          {{ form_widget(form.preferredTime, { attr: { class: 'input' } }) }}
+          {{ form_errors(form.preferredTime) }}
+        </div>
+        <div class="form-group">
+          {{ form_label(form.maxDaysAhead) }}
+          {{ form_widget(form.maxDaysAhead, { attr: { class: 'input' } }) }}
+          {{ form_errors(form.maxDaysAhead) }}
+          {% if form.maxDaysAhead.vars.help %}
+            <p class="hint">{{ form.maxDaysAhead.vars.help }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-actions" style="margin-top: 16px;">
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-save"></i> Enregistrer mes préférences
+        </button>
+        <a href="{{ path('patient_rendezvous_index') }}" class="btn-secondary">
+          Annuler
+        </a>
+      </div>
+    {{ form_end(form) }}
+  </div>
+</section>
+{% endblock %}
+

@@ -92,6 +92,19 @@ class DisponibiliteRepository extends ServiceEntityRepository
     }
 
     /**
+     * Disponibilités réservables pour un patient :
+     * - libres
+     * - à venir (date >= aujourd'hui)
+     * - associées à un médecin.
+     *
+     * @return Disponibilite[]
+     */
+    public function findAvailableForPatient(): array
+    {
+        return $this->findLibresAvenirAvecMedecin();
+    }
+
+    /**
      * Vérifie si une date/heure est déjà réservée pour un médecin (chevauchement).
      */
     public function existeChevauchement(\App\Entity\User $medecin, \DateTimeInterface $date, \DateTimeInterface $heureDebut, \DateTimeInterface $heureFin, ?int $excludeId = null): bool

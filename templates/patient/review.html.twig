@@ -1,0 +1,42 @@
+{% extends 'event/base.html.twig' %}
+
+{% block title %}Noter le médecin - MediLink{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <h2><i class="fa-solid fa-star"></i> Noter le médecin</h2>
+    <p>
+      Rendez-vous du {{ rendezVous.dateHeure|date('d/m/Y à H:i') }} avec
+      <strong>{{ medecin.fullName }}</strong>.
+    </p>
+  </div>
+
+  <div class="table-container" style="padding: 20px;">
+    {{ form_start(form) }}
+      <div class="form-row">
+        <div class="form-group">
+          {{ form_label(form.note) }}
+          {{ form_widget(form.note, { attr: { class: 'input' } }) }}
+          {{ form_errors(form.note) }}
+        </div>
+      </div>
+      <div class="form-group">
+        {{ form_label(form.commentaire) }}
+        {{ form_widget(form.commentaire, { attr: { class: 'input' } }) }}
+        {{ form_errors(form.commentaire) }}
+      </div>
+
+      <div class="form-actions" style="margin-top: 16px;">
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-paper-plane"></i> Envoyer mon avis
+        </button>
+        <a href="{{ path('patient_rendezvous_index') }}" class="btn-secondary">
+          Annuler
+        </a>
+      </div>
+    {{ form_end(form) }}
+  </div>
+</section>
+{% endblock %}
+
