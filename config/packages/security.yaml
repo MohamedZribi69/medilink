@@ -29,7 +29,7 @@ security:
 
     access_control:
         - { path: ^/don, roles: PUBLIC_ACCESS }
-        - { path: ^/admin, roles: '%admin_access_role%' }
+        - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/medecin, roles: ROLE_MEDECIN }
         - { path: ^/patient, roles: ROLE_USER }
         - { path: ^/profile, roles: ROLE_USER }

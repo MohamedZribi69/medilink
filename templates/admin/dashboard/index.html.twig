@@ -6,57 +6,6 @@
 
 {% block body %}
 <div class="container-fluid">
-    <!-- Graphiques dynamiques (Google Charts) -->
-    <div class="row mb-4">
-        <div class="col-12 mb-3">
-            <h5 class="text-primary mb-0"><i class="fas fa-chart-line me-2"></i> Statistiques et pilotage</h5>
-            <p class="text-muted small mb-0">Évolution, qualité et répartition des dons</p>
-        </div>
-        <div class="col-lg-8 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-2">
-                    <h6 class="m-0 font-weight-bold"><i class="fas fa-chart-area me-1"></i> Évolution mensuelle des dons</h6>
-                </div>
-                <div class="card-body p-3">
-                    <div id="chart_monthly" style="height: 280px;"></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-2">
-                    <h6 class="m-0 font-weight-bold"><i class="fas fa-percentage me-1"></i> Taux de validation</h6>
-                </div>
-                <div class="card-body p-3 d-flex align-items-center justify-content-center">
-                    <div id="chart_validation_rate" style="height: 200px; width: 100%;"></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-2">
-                    <h6 class="m-0 font-weight-bold"><i class="fas fa-chart-pie me-1"></i> Répartition par catégorie</h6>
-                </div>
-                <div class="card-body p-3">
-                    <div id="chart_by_category" style="height: 280px;"></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-2">
-                    <h6 class="m-0 font-weight-bold"><i class="fas fa-robot me-1"></i> Score qualité (indicateur)</h6>
-                </div>
-                <div class="card-body p-3 d-flex align-items-center justify-content-center">
-                    <div id="chart_quality_score" style="height: 200px; width: 100%;"></div>
-                </div>
-                <div class="card-footer py-2 small text-muted">
-                    Basé sur le taux de validation. Affichage des scores AI lorsque ceux-ci seront enregistrés.
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Statistiques -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
@@ -255,38 +204,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block page_scripts %}
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript">
-    {{ gc_language('fr') }}
-    {{ gc_draw([chart_validation_rate, chart_by_category, chart_quality_score], ['chart_validation_rate', 'chart_by_category', 'chart_quality_score']) }}
-</script>
-<script type="text/javascript">
-    google.charts.setOnLoadCallback(function() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('string', 'Mois');
-        data.addColumn('number', 'Validés');
-        data.addColumn('number', 'Rejetés');
-        data.addColumn('number', 'En attente');
-        data.addRows([
-            {% for row in chart_monthly_data %}
-            [{{ row.label|json_encode|raw }}, {{ row.valides }}, {{ row.rejetes }}, {{ row.en_attente }}]{% if not loop.last %},{% endif %}
-            {% endfor %}
-        ]);
-        var options = {
-            height: 280,
-            curveType: 'function',
-            colors: ['#1cc88a', '#e74a3b', '#f6c23e'],
-            vAxis: {
-                viewWindowMode: 'explicit',
-                viewWindow: { min: 0 }
-            },
-            legend: { position: 'labeled' }
-        };
-        var chart = new google.visualization.LineChart(document.getElementById('chart_monthly'));
-        chart.draw(data, options);
-    });
-</script>
 {% endblock %}
