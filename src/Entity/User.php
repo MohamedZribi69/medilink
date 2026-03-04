@@ -50,6 +50,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Assert\Choice(['morning', 'afternoon'])]
+    private ?string $preferredTime = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[Assert\Positive]
+    private ?int $maxDaysAhead = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -96,4 +104,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
     public function touch(): void { $this->updatedAt = new \DateTimeImmutable(); }
+
+    public function getPreferredTime(): ?string
+    {
+        return $this->preferredTime;
+    }
+
+    public function setPreferredTime(?string $preferredTime): self
+    {
+        $this->preferredTime = $preferredTime;
+        return $this;
+    }
+
+    public function getMaxDaysAhead(): ?int
+    {
+        return $this->maxDaysAhead;
+    }
+
+    public function setMaxDaysAhead(?int $maxDaysAhead): self
+    {
+        $this->maxDaysAhead = $maxDaysAhead;
+        return $this;
+    }
 }

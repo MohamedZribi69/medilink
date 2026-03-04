@@ -1137,6 +1137,17 @@ body {
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
     overflow-x: auto;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+/* Barre de pagination sous les tableaux : bien visible */
+.main-content .admin-pagination-bar {
+    margin-top: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
 .main-content .table-container table,

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation de rendez-vous</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #0d6efd; color: #fff; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .header h1 { margin: 0; font-size: 1.5rem; }
+        .content { background: #f8f9fa; padding: 24px; border: 1px solid #dee2e6; border-top: none; border-radius: 0 0 8px 8px; }
+        .block { margin-bottom: 16px; }
+        .label { font-weight: 600; color: #495057; }
+        .footer { text-align: center; margin-top: 24px; font-size: 0.875rem; color: #6c757d; }
+        .btn { display: inline-block; padding: 10px 20px; background: #0d6efd; color: #fff !important; text-decoration: none; border-radius: 6px; margin-top: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>MediLink – Confirmation de rendez-vous</h1>
+    </div>
+    <div class="content">
+        <p>Bonjour {{ patientName }},</p>
+        <p>Votre rendez-vous a bien été enregistré.</p>
+
+        <div class="block">
+            <span class="label">Date et heure :</span><br>
+            {{ dateHeure|date('d/m/Y') }} à {{ dateHeure|date('H:i') }}
+        </div>
+        <div class="block">
+            <span class="label">Médecin :</span><br>
+            {{ medecinName }}
+        </div>
+        {% if motif is not empty %}
+        <div class="block">
+            <span class="label">Motif :</span><br>
+            {{ motif }}
+        </div>
+        {% endif %}
+
+        <p>En cas d’empêchement, pensez à annuler ou modifier votre rendez-vous depuis votre espace patient.</p>
+        <p>À bientôt sur MediLink.</p>
+    </div>
+    <div class="footer">
+        Cet email a été envoyé automatiquement par MediLink. Merci de ne pas y répondre directement.
+    </div>
+</body>
+</html>

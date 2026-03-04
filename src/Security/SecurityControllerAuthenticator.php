@@ -47,10 +47,23 @@ class SecurityControllerAuthenticator extends AbstractLoginFormAuthenticator
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
             return new RedirectResponse($targetPath);
         }
-        // Redirection vers l'accueil (évite les routes absentes sur la branche dons)
+
+        $user = $token->getUser();
+        if (method_exists($user, 'getRoles')) {
+            $roles = $user->getRoles();
+            if (in_array('ROLE_ADMIN', $roles, true)) {
+                return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
+            }
+            if (in_array('ROLE_MEDECIN', $roles, true)) {
+                return new RedirectResponse($this->urlGenerator->generate('medecin_index'));
+            }
+        }
+
+        if (method_exists($user, 'getRoles') && in_array('ROLE_USER', $user->getRoles(), true)) {
+            return new RedirectResponse($this->urlGenerator->generate('patient_rendezvous_index'));
+        }
         return new RedirectResponse($this->urlGenerator->generate('front_home'));
     }
-
 
     protected function getLoginUrl(Request $request): string
     {

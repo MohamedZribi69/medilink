@@ -3,6 +3,8 @@
 
 parameters:
     openai_api_key_default: ''
+    # Adresse expéditeur pour les e-mails (événements, etc.). Surcharge possible via MAILER_FROM dans .env.local
+    mailer_from: 'noreply@medilink.local'
     # En prod : ROLE_ADMIN pour protéger /admin. En dev : overridé à PUBLIC_ACCESS pour accès direct.
     admin_access_role: ROLE_ADMIN
 
@@ -33,6 +35,16 @@ services:
     App\Service\DonScoringService:
         arguments:
             $openaiApiKey: '%env(trim:default:openai_api_key_default:OPENAI_API_KEY)%'
+
+    App\Service\EventDescriptionGenerator:
+        arguments:
+            $huggingfaceApiKey: '%env(trim:default::HUGGINGFACE_API_KEY)%'
+
+    App\Service\EventNotificationMailer:
+        arguments:
+            $fromEmail: '%mailer_from%'
+            $projectDir: '%kernel.project_dir%'
+            $kernelEnvironment: '%kernel.environment%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

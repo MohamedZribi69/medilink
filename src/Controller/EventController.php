@@ -7,6 +7,7 @@ use App\Entity\Participation;
 use App\Form\ParticipationType;
 use App\Repository\EvenementRepository;
 use App\Repository\ParticipationRepository;
+use App\Service\QrCodeGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,6 +24,23 @@ final class EventController extends AbstractController
 
         return $this->render('event/index.html.twig', [
             'evenements' => $evenements,
+        ]);
+    }
+
+    #[Route('/{id}/qrcode', name: 'app_events_qrcode', requirements: ['id' => '\d+'])]
+    public function qrcode(Evenement $evenement, QrCodeGenerator $qrCodeGenerator): Response
+    {
+        $result = $qrCodeGenerator->generateSvg([
+            'Titre'       => $evenement->getTitre(),
+            'Date'        => $evenement->getDateEvenement()?->format('d/m/Y'),
+            'Lieu'        => $evenement->getLieu(),
+            'Type'        => $evenement->getType(),
+            'Description' => $evenement->getDescription() !== '' ? $evenement->getDescription() : null,
+        ]);
+
+        return new Response($result->getString(), Response::HTTP_OK, [
+            'Content-Type'        => $result->getMimeType(),
+            'Content-Disposition' => 'inline; filename="event-' . $evenement->getId() . '-qrcode.svg"',
         ]);
     }
 

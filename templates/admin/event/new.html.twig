@@ -9,7 +9,7 @@
     <p class="mb-0 text-secondary">Créer un nouvel événement.</p>
   </div>
 
-  <div class="table-container" style="max-width: 600px;">
+  <div class="table-container" style="max-width: 700px;">
     {{ form_start(form, { attr: { novalidate: 'novalidate' } }) }}
     <div style="padding: 20px;">
       <div class="form-group">
@@ -35,9 +35,10 @@
       </div>
       <div class="form-group">
         <label for="{{ form.lieu.vars.id }}">Lieu</label>
-        {{ form_widget(form.lieu, { attr: { class: 'input' } }) }}
+        {{ form_widget(form.lieu, { attr: { class: 'input', placeholder: 'Ex: Salle A, ou une adresse pour la localiser sur la carte' } }) }}
         {{ form_errors(form.lieu) }}
       </div>
+      {{ include('admin/event/_map_lieu.html.twig', { lieu_input_id: form.lieu.vars.id }) }}
       <div class="form-group">
         <label for="{{ form.photoFile.vars.id }}">Photo de l'événement</label>
         {{ form_widget(form.photoFile, { attr: { class: 'input' } }) }}

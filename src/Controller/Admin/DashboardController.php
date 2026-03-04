@@ -44,12 +44,20 @@ class DashboardController extends AbstractController
         $lineChart = new LineChart();
         $monthlyRows = [['Mois', 'Validés', 'Rejetés', 'En attente']];
         foreach ($chartMonthlyData as $row) {
-            $monthlyRows[] = [$row['label'], $row['valides'], $row['rejetes'], $row['en_attente']];
+            $monthlyRows[] = [
+                $row['label'],
+                max(0, (int) $row['valides']),
+                max(0, (int) $row['rejetes']),
+                max(0, (int) $row['en_attente']),
+            ];
         }
         $lineChart->getData()->setArrayToDataTable($monthlyRows);
         $lineChart->getOptions()->setHeight(280);
-        $lineChart->getOptions()->setCurveType('function');
         $lineChart->getOptions()->setColors(['#1cc88a', '#e74a3b', '#f6c23e']);
+        $lineChart->getOptions()->getVAxis()->setMinValue(0);
+        if (method_exists($lineChart->getOptions()->getVAxis(), 'getViewWindow')) {
+            $lineChart->getOptions()->getVAxis()->getViewWindow()->setMin(0);
+        }
 
         $pieChart = new PieChart();
         $categoryRows = [['Catégorie', 'Dons']];

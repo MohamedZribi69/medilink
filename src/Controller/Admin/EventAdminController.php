@@ -7,6 +7,8 @@ use App\Entity\Participation;
 use App\Form\Admin\EventType;
 use App\Repository\EvenementRepository;
 use App\Repository\ParticipationRepository;
+use App\Service\EventDescriptionGenerator;
+use App\Service\EventNotificationMailer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -76,8 +78,27 @@ final class EventAdminController extends AbstractController
             // ignore
         }
     }
+    #[Route('/api/generate-description', name: 'admin_events_api_generate_description', methods: ['GET', 'POST'])]
+    public function generateDescription(Request $request, EventDescriptionGenerator $descriptionGenerator): Response
+    {
+        $title = $request->request->get('title') ?? $request->query->get('title', '');
+        $title = is_string($title) ? trim($title) : '';
+        if ($title === '') {
+            return $this->json(['description' => '', 'error' => 'Titre manquant'], 400);
+        }
+        $description = $descriptionGenerator->generateFromTitle($title);
+        if ($description === '') {
+            return $this->json([
+                'description' => '',
+                'error' => 'Impossible de générer une description pour le moment (API Hugging Face). Réessayez dans quelques secondes.',
+            ], 503);
+        }
+
+        return $this->json(['description' => $description]);
+    }
+
     #[Route('', name: 'admin_events_index')]
-    public function index(Request $request, EvenementRepository $repo): Response
+    public function index(Request $request, EvenementRepository $repo, ParticipationRepository $participationRepo): Response
     {
         $q = (string) $request->query->get('q', '');
         $ordre = $request->query->get('ordre');
@@ -92,9 +113,27 @@ final class EventAdminController extends AbstractController
         $orderDir = ($ordre === 'asc') ? 'ASC' : 'DESC';
         $evenements = $qb->orderBy('e.dateEvenement', $orderDir)->addOrderBy('e.id', $orderDir)->getQuery()->getResult();
 
+        $aVenir = $repo->findUpcoming();
+        $participationsEnAttente = 0;
+        foreach ($evenements as $ev) {
+            foreach ($ev->getParticipations() as $p) {
+                if ($p->getStatut() === 'en_attente') {
+                    $participationsEnAttente++;
+                }
+            }
+        }
+
+        $stats = [
+            'total' => count($evenements),
+            'a_venir' => count($aVenir),
+            'participations_attente' => $participationsEnAttente,
+        ];
+
         return $this->render('admin/event/index.html.twig', [
             'evenements' => $evenements,
             'filters' => ['q' => $q, 'ordre' => $ordre],
+            'stats' => $stats,
+            'events_count' => count($evenements),
         ]);
     }
 
@@ -178,15 +217,35 @@ final class EventAdminController extends AbstractController
     }
 
     #[Route('/{id}', name: 'admin_events_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function delete(Evenement $evenement, EntityManagerInterface $em, Request $request): Response
-    {
+    public function delete(
+        Evenement $evenement,
+        EntityManagerInterface $em,
+        Request $request,
+        ParticipationRepository $participationRepo,
+        EventNotificationMailer $eventNotificationMailer
+    ): Response {
         $token = (string) $request->request->get('_token');
         if (!$this->isCsrfTokenValid('delete_event_' . $evenement->getId(), $token)) {
             throw $this->createAccessDeniedException();
         }
+
+        $participations = $participationRepo->findByEvenement($evenement);
+        $recipientEmails = [];
+        foreach ($participations as $p) {
+            $user = $p->getUser();
+            if ($user !== null && $user->getEmail() !== null && $user->getEmail() !== '') {
+                $recipientEmails[] = $user->getEmail();
+            }
+        }
+        $recipientEmails = array_unique($recipientEmails);
+
+        if ($recipientEmails !== []) {
+            $eventNotificationMailer->sendEventDeletedNotification($evenement, $recipientEmails);
+        }
+
         $em->remove($evenement);
         $em->flush();
-        $this->addFlash('success', 'Événement supprimé.');
+        $this->addFlash('success', 'Événement supprimé.' . ($recipientEmails !== [] ? ' Les participants ont été notifiés par e-mail.' : ''));
         return $this->redirectToRoute('admin_events_index');
     }
 

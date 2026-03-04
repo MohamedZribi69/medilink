@@ -1,0 +1,67 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}MediLink - Disponibilités{% endblock %}
+{% block page_title %}Disponibilités{% endblock %}
+
+{% block body %}
+<section class="section active">
+  <div class="section-header">
+    <p class="mb-0 text-secondary">Consultation des disponibilités créées par les médecins. Seul le médecin peut créer, modifier ou supprimer ses disponibilités.</p>
+  </div>
+
+  <div class="toolbar" style="margin-bottom: 15px;">
+    <a href="{{ path('admin_rendezvous_index') }}" class="btn-secondary">
+      <i class="fa-solid fa-calendar-check"></i> Retour aux rendez-vous
+    </a>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Médecin</th>
+          <th>Date</th>
+          <th>Heure début</th>
+          <th>Heure fin</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in pagination %}
+          <tr>
+            <td>{{ d.medecin ? d.medecin.fullName : '-' }}</td>
+            <td>{{ d.date|date('d/m/Y') }}</td>
+            <td>{{ d.heureDebut|date('H:i') }}</td>
+            <td>{{ d.heureFin|date('H:i') }}</td>
+            <td>
+              <span class="badge badge-{{ d.status == 'reservee' ? 'success' : (d.status == 'annulee' ? 'error' : '') }}">
+                {{ statutsLabels[d.status] ?? d.status }}
+              </span>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5">Aucune disponibilité enregistrée. Les médecins les créent depuis leur espace.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-pagination-bar">
+    <nav class="d-flex align-items-center justify-content-between flex-wrap gap-3 py-3 px-3 rounded" aria-label="Pagination des disponibilités">
+      <div class="text-muted small mb-0">
+        <strong>{{ pagination.totalItemCount }}</strong> disponibilités au total
+        {% if pagination.pageCount > 1 %}
+          — Page <strong>{{ pagination.currentPageNumber }}</strong> / {{ pagination.pageCount }}
+        {% endif %}
+      </div>
+      {% if pagination.pageCount > 1 %}
+        {{ knp_pagination_render(pagination) }}
+      {% else %}
+        <span class="text-muted small">(une seule page)</span>
+      {% endif %}
+    </nav>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,86 @@
+{# Carte pour choisir le lieu de l'événement (Leaflet + OpenStreetMap) #}
+<div class="form-group event-map-group">
+  <label><i class="fa-solid fa-map-location-dot"></i> Carte – localisez le lieu</label>
+  <p class="hint" style="margin-bottom: 8px;">Cliquez sur la carte pour placer le lieu, ou saisissez une adresse puis cliquez sur « Rechercher sur la carte ».</p>
+  <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+    <button type="button" class="btn btn-sm btn-outline-primary event-map-search-btn">
+      <i class="fa-solid fa-magnifying-glass"></i> Rechercher sur la carte
+    </button>
+  </div>
+  <div id="event-map" class="event-map-container" data-lieu-input-id="{{ lieu_input_id }}" style="height: 280px; width: 100%; border-radius: 8px; border: 1px solid var(--medium-gray, #dee2e6); overflow: hidden;"></div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function() {
+  var container = document.getElementById('event-map');
+  if (!container) return;
+  var lieuInputId = container.getAttribute('data-lieu-input-id');
+  var lieuInput = document.getElementById(lieuInputId);
+  if (!lieuInput) return;
+
+  var center = [36.8065, 10.1815]; // Tunis par défaut
+  var map = L.map('event-map').setView(center, 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+
+  var marker = L.marker(center, { draggable: true }).addTo(map);
+
+  var initialLieu = lieuInput.value ? lieuInput.value.trim() : '';
+  if (initialLieu) {
+    fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(initialLieu) + '&limit=1', { headers: { 'Accept': 'application/json' } })
+      .then(function(r) { return r.json(); }).then(function(data) {
+        if (data && data[0]) {
+          var lat = parseFloat(data[0].lat);
+          var lon = parseFloat(data[0].lon);
+          map.setView([lat, lon], 15);
+          marker.setLatLng([lat, lon]);
+        }
+      }).catch(function() {});
+  }
+
+  function updateLieuFromLatLng(lat, lng) {
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=18&addressdetails=1', {
+      headers: { 'Accept': 'application/json' }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      var name = data.display_name || (lat.toFixed(5) + ', ' + lng.toFixed(5));
+      lieuInput.value = name;
+    }).catch(function() {
+      lieuInput.value = lat.toFixed(5) + ', ' + lng.toFixed(5);
+    });
+  }
+
+  map.on('click', function(e) {
+    marker.setLatLng(e.latlng);
+    updateLieuFromLatLng(e.latlng.lat, e.latlng.lng);
+  });
+  marker.on('dragend', function() {
+    var latlng = marker.getLatLng();
+    updateLieuFromLatLng(latlng.lat, latlng.lng);
+  });
+
+  document.querySelector('.event-map-search-btn')?.addEventListener('click', function() {
+    var q = lieuInput.value.trim();
+    if (!q) return;
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Recherche…';
+    fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q) + '&limit=1', {
+      headers: { 'Accept': 'application/json' }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data && data[0]) {
+        var lat = parseFloat(data[0].lat);
+        var lon = parseFloat(data[0].lon);
+        map.setView([lat, lon], 16);
+        marker.setLatLng([lat, lon]);
+        lieuInput.value = data[0].display_name || q;
+      }
+    }).catch(function() {}).finally(function() {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Rechercher sur la carte';
+    });
+  });
+})();
+</script>

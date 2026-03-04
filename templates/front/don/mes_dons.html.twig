@@ -1,7 +1,7 @@
 {% extends 'front/base.html.twig' %}
 
 {% block title %}Mes dons - MediLink{% endblock %}
-{% block styles %}{{ parent() }}{{ include('_dons_event_styles.html.twig') }}{% endblock %}
+{% block styles %}{{ parent() }}<style>{{ include('_dons_event_styles.html.twig') }}</style>{% endblock %}
 
 {% block body %}
 <div class="container py-5 page-dons">
